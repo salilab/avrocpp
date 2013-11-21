@@ -79,6 +79,8 @@ class MemoryInputStream : public InputStream {
   }
 
   size_t byteCount() const { return cur_ * chunkSize_ + curLen_; }
+
+  int64_t remainingBytes() const { return size_ - cur_; }
 };
 
 class MemoryInputStream2 : public InputStream {
@@ -110,6 +112,8 @@ class MemoryInputStream2 : public InputStream {
   }
 
   size_t byteCount() const { return curLen_; }
+
+  int64_t remainingBytes() const { return size_ - curLen_; }
 };
 
 class MemoryOutputStream : public OutputStream {
