@@ -27,7 +27,7 @@
 #include "ValidSchema.hh"
 #include "NodeImpl.hh"
 
-namespace avro {
+namespace internal_avro {
 namespace parsing {
 
 class ValidatingGrammarGenerator {
@@ -49,6 +49,6 @@ class ValidatingGrammarGenerator {
 };
 
 }  // namespace parsing
-}  // namespace avro
+}  // namespace internal_avro
 
 #endif

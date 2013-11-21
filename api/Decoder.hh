@@ -40,7 +40,7 @@
 /// These functions are arrayStart, startItem, and arrayEnd
 /// (and similar functions for maps).
 
-namespace avro {
+namespace internal_avro {
 
 /**
  * Decoder is an interface implemented by every decoder capable
@@ -205,6 +205,6 @@ AVRO_DECL ResolvingDecoderPtr resolvingDecoder(const ValidSchema& writer,
                                                const ValidSchema& reader,
                                                const DecoderPtr& base);
 
-}  // namespace avro
+}  // namespace internal_avro
 
 #endif

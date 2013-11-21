@@ -23,7 +23,7 @@
 #include <stdexcept>
 #include <boost/format.hpp>
 
-namespace avro {
+namespace internal_avro {
 
 /// Wrapper for std::runtime_error that provides convenience constructor
 /// for boost::format objects
@@ -35,6 +35,6 @@ class AVRO_DECL Exception : public virtual std::runtime_error {
   Exception(const boost::format &msg) : std::runtime_error(boost::str(msg)) {}
 };
 
-}  // namespace avro
+}  // namespace internal_avro
 
 #endif

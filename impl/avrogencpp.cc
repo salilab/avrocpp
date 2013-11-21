@@ -44,13 +44,13 @@ using std::map;
 using std::set;
 using std::string;
 using std::vector;
-using avro::NodePtr;
-using avro::resolveSymbol;
+using internal_avro::NodePtr;
+using internal_avro::resolveSymbol;
 
 using boost::lexical_cast;
 
-using avro::ValidSchema;
-using avro::compileJsonSchema;
+using internal_avro::ValidSchema;
+using internal_avro::compileJsonSchema;
 
 struct PendingSetterGetter {
   string structName;
@@ -123,7 +123,9 @@ class CodeGen {
   void generate(const ValidSchema& schema);
 };
 
-static string decorate(const avro::Name& name) { return name.simpleName(); }
+static string decorate(const internal_avro::Name& name) {
+  return name.simpleName();
+}
 
 string CodeGen::fullname(const string& name) const {
   return ns_.empty() ? name : (ns_ + "::" + name);
@@ -142,35 +144,35 @@ string CodeGen::generateEnumType(const NodePtr& n) {
 
 string CodeGen::cppTypeOf(const NodePtr& n) {
   switch (n->type()) {
-    case avro::AVRO_STRING:
+    case internal_avro::AVRO_STRING:
       return "std::string";
-    case avro::AVRO_BYTES:
+    case internal_avro::AVRO_BYTES:
       return "std::vector<uint8_t>";
-    case avro::AVRO_INT:
+    case internal_avro::AVRO_INT:
       return "int32_t";
-    case avro::AVRO_LONG:
+    case internal_avro::AVRO_LONG:
       return "int64_t";
-    case avro::AVRO_FLOAT:
+    case internal_avro::AVRO_FLOAT:
       return "float";
-    case avro::AVRO_DOUBLE:
+    case internal_avro::AVRO_DOUBLE:
       return "double";
-    case avro::AVRO_BOOL:
+    case internal_avro::AVRO_BOOL:
       return "bool";
-    case avro::AVRO_RECORD:
-    case avro::AVRO_ENUM: {
+    case internal_avro::AVRO_RECORD:
+    case internal_avro::AVRO_ENUM: {
       string nm = decorate(n->name());
       return inNamespace_ ? nm : fullname(nm);
     }
-    case avro::AVRO_ARRAY:
+    case internal_avro::AVRO_ARRAY:
       return "std::vector<" + cppTypeOf(n->leafAt(0)) + " >";
-    case avro::AVRO_MAP:
+    case internal_avro::AVRO_MAP:
       return "std::map<std::string, " + cppTypeOf(n->leafAt(1)) + " >";
-    case avro::AVRO_FIXED:
+    case internal_avro::AVRO_FIXED:
       return "boost::array<uint8_t, " + lexical_cast<string>(n->fixedSize()) +
              ">";
-    case avro::AVRO_SYMBOLIC:
+    case internal_avro::AVRO_SYMBOLIC:
       return cppTypeOf(resolveSymbol(n));
-    case avro::AVRO_UNION:
+    case internal_avro::AVRO_UNION:
       return fullname(done[n]);
     default:
       return "$Undefined$";
@@ -179,31 +181,31 @@ string CodeGen::cppTypeOf(const NodePtr& n) {
 
 static string cppNameOf(const NodePtr& n) {
   switch (n->type()) {
-    case avro::AVRO_NULL:
+    case internal_avro::AVRO_NULL:
       return "null";
-    case avro::AVRO_STRING:
+    case internal_avro::AVRO_STRING:
       return "string";
-    case avro::AVRO_BYTES:
+    case internal_avro::AVRO_BYTES:
       return "bytes";
-    case avro::AVRO_INT:
+    case internal_avro::AVRO_INT:
       return "int";
-    case avro::AVRO_LONG:
+    case internal_avro::AVRO_LONG:
       return "long";
-    case avro::AVRO_FLOAT:
+    case internal_avro::AVRO_FLOAT:
       return "float";
-    case avro::AVRO_DOUBLE:
+    case internal_avro::AVRO_DOUBLE:
       return "double";
-    case avro::AVRO_BOOL:
+    case internal_avro::AVRO_BOOL:
       return "bool";
-    case avro::AVRO_RECORD:
-    case avro::AVRO_ENUM:
-    case avro::AVRO_FIXED:
+    case internal_avro::AVRO_RECORD:
+    case internal_avro::AVRO_ENUM:
+    case internal_avro::AVRO_FIXED:
       return decorate(n->name());
-    case avro::AVRO_ARRAY:
+    case internal_avro::AVRO_ARRAY:
       return "array";
-    case avro::AVRO_MAP:
+    case internal_avro::AVRO_MAP:
       return "map";
-    case avro::AVRO_SYMBOLIC:
+    case internal_avro::AVRO_SYMBOLIC:
       return cppNameOf(resolveSymbol(n));
     default:
       return "$Undefined$";
@@ -225,13 +227,13 @@ string CodeGen::generateRecordType(const NodePtr& n) {
   os_ << "struct " << decorate(n->name()) << " {\n";
   if (!noUnion_) {
     for (size_t i = 0; i < c; ++i) {
-      if (n->leafAt(i)->type() == avro::AVRO_UNION) {
+      if (n->leafAt(i)->type() == internal_avro::AVRO_UNION) {
         os_ << "    typedef " << types[i] << ' ' << n->nameAt(i) << "_t;\n";
       }
     }
   }
   for (size_t i = 0; i < c; ++i) {
-    if (!noUnion_ && n->leafAt(i)->type() == avro::AVRO_UNION) {
+    if (!noUnion_ && n->leafAt(i)->type() == internal_avro::AVRO_UNION) {
       os_ << "    " << n->nameAt(i) << "_t";
     } else {
       os_ << "    " << types[i];
@@ -274,7 +276,7 @@ static void generateGetterAndSetter(ostream& os, const string& structName,
 
   os << type << sn << "get_" << name << "() const {\n"
      << "    if (idx_ != " << idx << ") {\n"
-     << "        throw avro::Exception(\"Invalid type for "
+     << "        throw internal_avro::Exception(\"Invalid type for "
      << "union\");\n"
      << "    }\n"
      << "    return boost::any_cast<" << type << " >(value_);\n"
@@ -338,7 +340,7 @@ string CodeGen::generateUnionType(const NodePtr& n) {
 
   for (size_t i = 0; i < c; ++i) {
     const NodePtr& nn = n->leafAt(i);
-    if (nn->type() == avro::AVRO_NULL) {
+    if (nn->type() == internal_avro::AVRO_NULL) {
       os_ << "    bool is_null() const {\n"
           << "        return (idx_ == " << i << ");\n"
           << "    }\n"
@@ -359,7 +361,7 @@ string CodeGen::generateUnionType(const NodePtr& n) {
 
   os_ << "    " << result << "();\n";
   pendingConstructors.push_back(PendingConstructor(
-      result, types[0], n->leafAt(0)->type() != avro::AVRO_NULL));
+      result, types[0], n->leafAt(0)->type() != internal_avro::AVRO_NULL));
   os_ << "};\n\n";
 
   return result;
@@ -369,7 +371,8 @@ string CodeGen::generateUnionType(const NodePtr& n) {
  * Returns the type for the given schema node and emits code to os.
  */
 string CodeGen::generateType(const NodePtr& n) {
-  NodePtr nn = (n->type() == avro::AVRO_SYMBOLIC) ? resolveSymbol(n) : n;
+  NodePtr nn =
+      (n->type() == internal_avro::AVRO_SYMBOLIC) ? resolveSymbol(n) : n;
 
   map<NodePtr, string>::const_iterator it = done.find(nn);
   if (it != done.end()) {
@@ -382,25 +385,25 @@ string CodeGen::generateType(const NodePtr& n) {
 
 string CodeGen::doGenerateType(const NodePtr& n) {
   switch (n->type()) {
-    case avro::AVRO_STRING:
-    case avro::AVRO_BYTES:
-    case avro::AVRO_INT:
-    case avro::AVRO_LONG:
-    case avro::AVRO_FLOAT:
-    case avro::AVRO_DOUBLE:
-    case avro::AVRO_BOOL:
-    case avro::AVRO_NULL:
-    case avro::AVRO_FIXED:
+    case internal_avro::AVRO_STRING:
+    case internal_avro::AVRO_BYTES:
+    case internal_avro::AVRO_INT:
+    case internal_avro::AVRO_LONG:
+    case internal_avro::AVRO_FLOAT:
+    case internal_avro::AVRO_DOUBLE:
+    case internal_avro::AVRO_BOOL:
+    case internal_avro::AVRO_NULL:
+    case internal_avro::AVRO_FIXED:
       return cppTypeOf(n);
-    case avro::AVRO_ARRAY:
+    case internal_avro::AVRO_ARRAY:
       return "std::vector<" + generateType(n->leafAt(0)) + " >";
-    case avro::AVRO_MAP:
+    case internal_avro::AVRO_MAP:
       return "std::map<std::string, " + generateType(n->leafAt(1)) + " >";
-    case avro::AVRO_RECORD:
+    case internal_avro::AVRO_RECORD:
       return generateRecordType(n);
-    case avro::AVRO_ENUM:
+    case internal_avro::AVRO_ENUM:
       return generateEnumType(n);
-    case avro::AVRO_UNION:
+    case internal_avro::AVRO_UNION:
       return generateUnionType(n);
     default:
       break;
@@ -409,29 +412,30 @@ string CodeGen::doGenerateType(const NodePtr& n) {
 }
 
 string CodeGen::generateDeclaration(const NodePtr& n) {
-  NodePtr nn = (n->type() == avro::AVRO_SYMBOLIC) ? resolveSymbol(n) : n;
+  NodePtr nn =
+      (n->type() == internal_avro::AVRO_SYMBOLIC) ? resolveSymbol(n) : n;
   switch (nn->type()) {
-    case avro::AVRO_STRING:
-    case avro::AVRO_BYTES:
-    case avro::AVRO_INT:
-    case avro::AVRO_LONG:
-    case avro::AVRO_FLOAT:
-    case avro::AVRO_DOUBLE:
-    case avro::AVRO_BOOL:
-    case avro::AVRO_NULL:
-    case avro::AVRO_FIXED:
+    case internal_avro::AVRO_STRING:
+    case internal_avro::AVRO_BYTES:
+    case internal_avro::AVRO_INT:
+    case internal_avro::AVRO_LONG:
+    case internal_avro::AVRO_FLOAT:
+    case internal_avro::AVRO_DOUBLE:
+    case internal_avro::AVRO_BOOL:
+    case internal_avro::AVRO_NULL:
+    case internal_avro::AVRO_FIXED:
       return cppTypeOf(nn);
-    case avro::AVRO_ARRAY:
+    case internal_avro::AVRO_ARRAY:
       return "std::vector<" + generateDeclaration(nn->leafAt(0)) + " >";
-    case avro::AVRO_MAP:
+    case internal_avro::AVRO_MAP:
       return "std::map<std::string, " + generateDeclaration(nn->leafAt(1)) +
              " >";
-    case avro::AVRO_RECORD:
+    case internal_avro::AVRO_RECORD:
       os_ << "struct " << cppTypeOf(nn) << ";\n";
       return cppTypeOf(nn);
-    case avro::AVRO_ENUM:
+    case internal_avro::AVRO_ENUM:
       return generateEnumType(nn);
-    case avro::AVRO_UNION:
+    case internal_avro::AVRO_UNION:
       // FIXME: When can this happen?
       return generateUnionType(nn);
     default:
@@ -463,14 +467,14 @@ void CodeGen::generateRecordTraits(const NodePtr& n) {
       << "    static void encode(Encoder& e, const " << fn << "& v) {\n";
 
   for (size_t i = 0; i < c; ++i) {
-    os_ << "        avro::encode(e, v." << n->nameAt(i) << ");\n";
+    os_ << "        internal_avro::encode(e, v." << n->nameAt(i) << ");\n";
   }
 
   os_ << "    }\n"
       << "    static void decode(Decoder& d, " << fn << "& v) {\n";
 
   for (size_t i = 0; i < c; ++i) {
-    os_ << "        avro::decode(d, v." << n->nameAt(i) << ");\n";
+    os_ << "        internal_avro::decode(d, v." << n->nameAt(i) << ");\n";
   }
 
   os_ << "    }\n"
@@ -496,10 +500,11 @@ void CodeGen::generateUnionTraits(const NodePtr& n) {
   for (size_t i = 0; i < c; ++i) {
     const NodePtr& nn = n->leafAt(i);
     os_ << "        case " << i << ":\n";
-    if (nn->type() == avro::AVRO_NULL) {
+    if (nn->type() == internal_avro::AVRO_NULL) {
       os_ << "            e.encodeNull();\n";
     } else {
-      os_ << "            avro::encode(e, v.get_" << cppNameOf(nn) << "());\n";
+      os_ << "            internal_avro::encode(e, v.get_" << cppNameOf(nn)
+          << "());\n";
     }
     os_ << "            break;\n";
   }
@@ -508,20 +513,20 @@ void CodeGen::generateUnionTraits(const NodePtr& n) {
       << "    }\n"
       << "    static void decode(Decoder& d, " << fn << "& v) {\n"
       << "        size_t n = d.decodeUnionIndex();\n"
-      << "        if (n >= " << c << ") { throw avro::Exception(\""
+      << "        if (n >= " << c << ") { throw internal_avro::Exception(\""
                                      "Union index too big\"); }\n"
       << "        switch (n) {\n";
 
   for (size_t i = 0; i < c; ++i) {
     const NodePtr& nn = n->leafAt(i);
     os_ << "        case " << i << ":\n";
-    if (nn->type() == avro::AVRO_NULL) {
+    if (nn->type() == internal_avro::AVRO_NULL) {
       os_ << "            d.decodeNull();\n"
           << "            v.set_null();\n";
     } else {
       os_ << "            {\n"
           << "                " << cppTypeOf(nn) << " vv;\n"
-          << "                avro::decode(d, vv);\n"
+          << "                internal_avro::decode(d, vv);\n"
           << "                v.set_" << cppNameOf(nn) << "(vv);\n"
           << "            }\n";
     }
@@ -534,29 +539,29 @@ void CodeGen::generateUnionTraits(const NodePtr& n) {
 
 void CodeGen::generateTraits(const NodePtr& n) {
   switch (n->type()) {
-    case avro::AVRO_STRING:
-    case avro::AVRO_BYTES:
-    case avro::AVRO_INT:
-    case avro::AVRO_LONG:
-    case avro::AVRO_FLOAT:
-    case avro::AVRO_DOUBLE:
-    case avro::AVRO_BOOL:
-    case avro::AVRO_NULL:
+    case internal_avro::AVRO_STRING:
+    case internal_avro::AVRO_BYTES:
+    case internal_avro::AVRO_INT:
+    case internal_avro::AVRO_LONG:
+    case internal_avro::AVRO_FLOAT:
+    case internal_avro::AVRO_DOUBLE:
+    case internal_avro::AVRO_BOOL:
+    case internal_avro::AVRO_NULL:
       break;
-    case avro::AVRO_RECORD:
+    case internal_avro::AVRO_RECORD:
       generateRecordTraits(n);
       break;
-    case avro::AVRO_ENUM:
+    case internal_avro::AVRO_ENUM:
       generateEnumTraits(n);
       break;
-    case avro::AVRO_ARRAY:
-    case avro::AVRO_MAP:
-      generateTraits(n->leafAt(n->type() == avro::AVRO_ARRAY ? 0 : 1));
+    case internal_avro::AVRO_ARRAY:
+    case internal_avro::AVRO_MAP:
+      generateTraits(n->leafAt(n->type() == internal_avro::AVRO_ARRAY ? 0 : 1));
       break;
-    case avro::AVRO_UNION:
+    case internal_avro::AVRO_UNION:
       generateUnionTraits(n);
       break;
-    case avro::AVRO_FIXED:
+    case internal_avro::AVRO_FIXED:
       break;
     default:
       break;
@@ -632,7 +637,7 @@ void CodeGen::generate(const ValidSchema& schema) {
     os_ << "}\n";
   }
 
-  os_ << "namespace avro {\n";
+  os_ << "namespace internal_avro {\n";
 
   unionNumber_ = 0;
 
@@ -676,8 +681,8 @@ static string readGuard(const string& filename) {
 int main(int argc, char** argv) {
   po::options_description desc("Allowed options");
   desc.add_options()("help,h", "produce help message")(
-      "include-prefix,p", po::value<string>()->default_value("avro"),
-      "prefix for include headers, - for none, default: avro")(
+      "include-prefix,p", po::value<string>()->default_value("internal_avro"),
+      "prefix for include headers, - for none, default: internal_avro")(
       "no-union-typedef,U", "do not generate typedefs for unions in records")(
       "namespace,n", po::value<string>(), "set namespace for generated code")(
       "input,i", po::value<string>(), "input file")(

@@ -18,7 +18,7 @@
 
 #include "NodeImpl.hh"
 
-namespace avro {
+namespace internal_avro {
 
 SchemaResolution NodePrimitive::resolve(const Node &reader) const {
   if (type() == reader.type()) {
@@ -241,4 +241,4 @@ void NodeFixed::printJson(std::ostream &os, int depth) const {
   os << indent(--depth) << '}';
 }
 
-}  // namespace avro
+}  // namespace internal_avro

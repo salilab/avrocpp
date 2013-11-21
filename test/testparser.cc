@@ -25,8 +25,8 @@
 int main() {
   int ret = 0;
   try {
-    avro::ValidSchema schema;
-    avro::compileJsonSchema(std::cin, schema);
+    internal_avro::ValidSchema schema;
+    internal_avro::compileJsonSchema(std::cin, schema);
 
     schema.toJson(std::cout);
   }

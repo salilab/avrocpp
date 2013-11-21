@@ -31,7 +31,7 @@
 #include "Encoder.hh"
 #include "NodeImpl.hh"
 
-namespace avro {
+namespace internal_avro {
 
 namespace parsing {
 
@@ -522,4 +522,4 @@ EncoderPtr validatingEncoder(const ValidSchema& schema,
       parsing::SimpleParser<parsing::DummyHandler> > >(schema, base);
 }
 
-}  // namespace avro
+}  // namespace internal_avro

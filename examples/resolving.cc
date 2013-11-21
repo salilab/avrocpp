@@ -27,31 +27,33 @@
 #include "avro/Specific.hh"
 #include "avro/Generic.hh"
 
-avro::ValidSchema load(const char* filename) {
+internal_avro::ValidSchema load(const char* filename) {
   std::ifstream ifs(filename);
-  avro::ValidSchema result;
-  avro::compileJsonSchema(ifs, result);
+  internal_avro::ValidSchema result;
+  internal_avro::compileJsonSchema(ifs, result);
   return result;
 }
 
 int main() {
-  avro::ValidSchema cpxSchema = load("cpx.json");
-  avro::ValidSchema imaginarySchema = load("imaginary.json");
+  internal_avro::ValidSchema cpxSchema = load("cpx.json");
+  internal_avro::ValidSchema imaginarySchema = load("imaginary.json");
 
-  std::auto_ptr<avro::OutputStream> out = avro::memoryOutputStream();
-  avro::EncoderPtr e = avro::binaryEncoder();
+  std::auto_ptr<internal_avro::OutputStream> out =
+      internal_avro::memoryOutputStream();
+  internal_avro::EncoderPtr e = internal_avro::binaryEncoder();
   e->init(*out);
   c::cpx c1;
   c1.re = 100.23;
   c1.im = 105.77;
-  avro::encode(*e, c1);
+  internal_avro::encode(*e, c1);
 
-  std::auto_ptr<avro::InputStream> in = avro::memoryInputStream(*out);
-  avro::DecoderPtr d =
-      avro::resolvingDecoder(cpxSchema, imaginarySchema, avro::binaryDecoder());
+  std::auto_ptr<internal_avro::InputStream> in =
+      internal_avro::memoryInputStream(*out);
+  internal_avro::DecoderPtr d = internal_avro::resolvingDecoder(
+      cpxSchema, imaginarySchema, internal_avro::binaryDecoder());
   d->init(*in);
 
   i::cpx c2;
-  avro::decode(*d, c2);
+  internal_avro::decode(*d, c2);
   std::cout << "Imaginary: " << c2.im << std::endl;
 }

@@ -38,7 +38,7 @@
  *
  **/
 
-namespace avro {
+namespace internal_avro {
 
 namespace detail {
 

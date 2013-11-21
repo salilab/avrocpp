@@ -37,7 +37,7 @@ using std::auto_ptr;
 using std::istream;
 using std::ostream;
 
-namespace avro {
+namespace internal_avro {
 namespace {
 struct BufferCopyIn {
   virtual ~BufferCopyIn() {}
@@ -327,4 +327,4 @@ auto_ptr<OutputStream> ostreamOutputStream(ostream& os, size_t bufferSize) {
   return auto_ptr<OutputStream>(new BufferCopyOutputStream(out, bufferSize));
 }
 
-}  // namespace avro
+}  // namespace internal_avro

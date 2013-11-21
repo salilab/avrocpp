@@ -32,7 +32,7 @@
  *
  **/
 
-namespace avro {
+namespace internal_avro {
 
 /**
  * Helper class for reading bytes from buffer without worrying about

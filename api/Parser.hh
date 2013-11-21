@@ -22,7 +22,7 @@
 #include "Config.hh"
 #include "Reader.hh"
 
-namespace avro {
+namespace internal_avro {
 
 ///
 /// Class that wraps a reader or ValidatingReade with an interface that uses
@@ -121,6 +121,6 @@ inline bool nextFieldName(Parser<ValidatingReader> &p, std::string &name) {
   return p.reader_.nextFieldName(name);
 }
 
-}  // namespace avro
+}  // namespace internal_avro
 
 #endif

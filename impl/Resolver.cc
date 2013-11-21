@@ -26,7 +26,7 @@
 #include "Boost.hh"
 #include "AvroTraits.hh"
 
-namespace avro {
+namespace internal_avro {
 
 class ResolverFactory;
 typedef boost::shared_ptr<Resolver> ResolverPtr;
@@ -768,4 +768,4 @@ Resolver *constructResolver(const ValidSchema &writerSchema,
                            readerLayout);
 }
 
-}  // namespace avro
+}  // namespace internal_avro

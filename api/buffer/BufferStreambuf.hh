@@ -28,7 +28,7 @@
 #ifdef min
 #undef min
 #endif
-namespace avro {
+namespace internal_avro {
 
 /**
  * \brief Implementation of streambuf for use by the Buffer's ostream.

@@ -31,7 +31,7 @@ using std::string;
 using std::map;
 using std::vector;
 
-namespace avro {
+namespace internal_avro {
 
 typedef map<Name, NodePtr> SymbolTable;
 
@@ -303,4 +303,4 @@ AVRO_DECL bool compileJsonSchema(std::istream& is, ValidSchema& schema,
   }
 }
 
-}  // namespace avro
+}  // namespace internal_avro

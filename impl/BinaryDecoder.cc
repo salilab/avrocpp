@@ -25,7 +25,7 @@
 #include <boost/array.hpp>
 #include <boost/make_shared.hpp>
 
-namespace avro {
+namespace internal_avro {
 
 using boost::make_shared;
 
@@ -192,4 +192,4 @@ int64_t BinaryDecoder::doDecodeLong() {
   return decodeZigzag64(encoded);
 }
 
-}  // namespace avro
+}  // namespace internal_avro

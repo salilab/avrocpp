@@ -27,7 +27,7 @@
  * \brief Custom istream and ostream classes for use with buffers
  **/
 
-namespace avro {
+namespace internal_avro {
 
 /**
  *
@@ -82,6 +82,6 @@ class AVRO_DECL istream : public std::istream {
   istreambuf ibuf_;
 };
 
-}  // namespace avro
+}  // namespace internal_avro
 
 #endif

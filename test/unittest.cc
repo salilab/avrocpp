@@ -34,7 +34,7 @@
 
 #include "AvroSerialize.hh"
 
-using namespace avro;
+using namespace internal_avro;
 
 static const uint8_t fixeddata[16] = {0, 1, 2,  3,  4,  5,  6,  7,
                                       8, 9, 10, 11, 12, 13, 14, 15};
@@ -47,18 +47,18 @@ struct TestSchema {
 
   void createExampleSchema() {
     // First construct our complex data type:
-    avro::RecordSchema myRecord("complex");
+    internal_avro::RecordSchema myRecord("complex");
 
     // Now populate my record with fields (each field is another schema):
-    myRecord.addField("real", avro::DoubleSchema());
-    myRecord.addField("imaginary", avro::DoubleSchema());
+    myRecord.addField("real", internal_avro::DoubleSchema());
+    myRecord.addField("imaginary", internal_avro::DoubleSchema());
 
     // The complex record is the same as used above, let's make a schema
     // for an array of these record
 
-    avro::ArraySchema complexArray(myRecord);
+    internal_avro::ArraySchema complexArray(myRecord);
 
-    avro::ValidSchema validComplexArray(complexArray);
+    internal_avro::ValidSchema validComplexArray(complexArray);
     validComplexArray.toJson(std::cout);
   }
 
@@ -68,7 +68,7 @@ struct TestSchema {
     record.addField("mylong", LongSchema());
 
     IntSchema intSchema;
-    avro::MapSchema map = MapSchema(IntSchema());
+    internal_avro::MapSchema map = MapSchema(IntSchema());
 
     record.addField("mymap", map);
 
@@ -584,10 +584,10 @@ struct TestBadStuff {
   void testBadFile() {
     std::cout << "TestBadFile\n";
 
-    avro::ValidSchema schema;
+    internal_avro::ValidSchema schema;
     std::ifstream in("agjoewejefkjs");
     std::string error;
-    bool result = avro::compileJsonSchema(in, schema, error);
+    bool result = internal_avro::compileJsonSchema(in, schema, error);
     BOOST_CHECK_EQUAL(result, false);
     std::cout << "(intentional) error: " << error << '\n';
   }
@@ -598,9 +598,9 @@ struct TestBadStuff {
     std::string str("{ \"type\" : \"wrong\" }");
     std::istringstream in(str);
 
-    avro::ValidSchema schema;
+    internal_avro::ValidSchema schema;
     std::string error;
-    bool result = avro::compileJsonSchema(in, schema, error);
+    bool result = internal_avro::compileJsonSchema(in, schema, error);
     BOOST_CHECK_EQUAL(result, false);
     std::cout << "(intentional) error: " << error << '\n';
   }

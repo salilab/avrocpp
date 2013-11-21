@@ -18,7 +18,7 @@
 
 #include "Node.hh"
 
-namespace avro {
+namespace internal_avro {
 
 using std::string;
 
@@ -68,4 +68,4 @@ bool Name::operator==(const Name& n) const {
   return ns_ == n.ns_ && simpleName_ == n.simpleName_;
 }
 
-}  // namespace avro
+}  // namespace internal_avro

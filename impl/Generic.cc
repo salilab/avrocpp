@@ -20,7 +20,7 @@
 #include "NodeImpl.hh"
 #include <sstream>
 
-namespace avro {
+namespace internal_avro {
 
 using std::string;
 using std::vector;
@@ -301,4 +301,4 @@ void GenericWriter::write(const GenericDatum& datum, Encoder& e) {
 
 void GenericWriter::write(Encoder& e, const GenericDatum& g) { write(g, e); }
 
-}  // namespace avro
+}  // namespace internal_avro

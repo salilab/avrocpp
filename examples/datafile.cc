@@ -25,18 +25,18 @@
 #include "avro/Compiler.hh"
 #include "avro/DataFile.hh"
 
-avro::ValidSchema loadSchema(const char* filename) {
+internal_avro::ValidSchema loadSchema(const char* filename) {
   std::ifstream ifs(filename);
-  avro::ValidSchema result;
-  avro::compileJsonSchema(ifs, result);
+  internal_avro::ValidSchema result;
+  internal_avro::compileJsonSchema(ifs, result);
   return result;
 }
 
 int main() {
-  avro::ValidSchema cpxSchema = loadSchema("cpx.json");
+  internal_avro::ValidSchema cpxSchema = loadSchema("cpx.json");
 
   {
-    avro::DataFileWriter<c::cpx> dfw("test.bin", cpxSchema);
+    internal_avro::DataFileWriter<c::cpx> dfw("test.bin", cpxSchema);
     c::cpx c1;
     for (int i = 0; i < 100; i++) {
       c1.re = i * 100;
@@ -47,7 +47,7 @@ int main() {
   }
 
   {
-    avro::DataFileReader<c::cpx> dfr("test.bin", cpxSchema);
+    internal_avro::DataFileReader<c::cpx> dfr("test.bin", cpxSchema);
     c::cpx c2;
     while (dfr.read(c2)) {
       std::cout << '(' << c2.re << ", " << c2.im << ')' << std::endl;

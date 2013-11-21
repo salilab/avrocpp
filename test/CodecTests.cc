@@ -38,7 +38,7 @@
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/math/special_functions/fpclassify.hpp>
 
-namespace avro {
+namespace internal_avro {
 
 /*
 void dump(const OutputStream& os)
@@ -726,13 +726,13 @@ void testGeneric(const TestData& td) {
     auto_ptr<InputStream> in1 = memoryInputStream(*p);
     d1->init(*in1);
     GenericDatum datum(vs);
-    avro::decode(*d1, datum);
+    internal_avro::decode(*d1, datum);
 
     EncoderPtr e2 = CodecFactory::newEncoder(vs);
     auto_ptr<OutputStream> ob = memoryOutputStream();
     e2->init(*ob);
 
-    avro::encode(*e2, datum);
+    internal_avro::encode(*e2, datum);
     e2->flush();
 
     BOOST_TEST_CHECKPOINT("Test: " << testNo << ' ' << " schema: " << td.schema
@@ -772,7 +772,7 @@ void testGenericResolving(const TestData3& td) {
     EncoderPtr e2 = CodecFactory::newEncoder(rvs);
     auto_ptr<OutputStream> ob = memoryOutputStream();
     e2->init(*ob);
-    avro::encode(*e2, datum);
+    internal_avro::encode(*e2, datum);
     e2->flush();
 
     BOOST_TEST_CHECKPOINT("Test: " << testNo << ' ' << " writer-schemai "
@@ -816,7 +816,7 @@ void testGenericResolving2(const TestData4& td) {
   EncoderPtr e2 = CodecFactory::newEncoder(rvs);
   auto_ptr<OutputStream> ob = memoryOutputStream();
   e2->init(*ob);
-  avro::encode(*e2, datum);
+  internal_avro::encode(*e2, datum);
   e2->flush();
   // We cannot verify with the reader calls because they are for
   // the resolving decoder and hence could be in a different order than
@@ -1466,18 +1466,19 @@ static void testJson(const JsonData& data) {
   EncoderPtr e = jsonEncoder(schema);
 }
 
-}  // namespace avro
+}  // namespace internal_avro
 
 boost::unit_test::test_suite* init_unit_test_suite(int argc, char* argv[]) {
   using namespace boost::unit_test;
 
   test_suite* ts = BOOST_TEST_SUITE("Avro C++ unit tests for codecs");
-  avro::parsing::add_tests(*ts);
-  ts->add(BOOST_TEST_CASE(avro::testStreamLifetimes));
-  ts->add(BOOST_TEST_CASE(avro::testLimitsBinaryCodec));
-  ts->add(BOOST_TEST_CASE(avro::testLimitsJsonCodec));
-  ts->add(BOOST_PARAM_TEST_CASE(&avro::testJson, avro::jsonData,
-                                ENDOF(avro::jsonData)));
+  internal_avro::parsing::add_tests(*ts);
+  ts->add(BOOST_TEST_CASE(internal_avro::testStreamLifetimes));
+  ts->add(BOOST_TEST_CASE(internal_avro::testLimitsBinaryCodec));
+  ts->add(BOOST_TEST_CASE(internal_avro::testLimitsJsonCodec));
+  ts->add(BOOST_PARAM_TEST_CASE(&internal_avro::testJson,
+                                internal_avro::jsonData,
+                                ENDOF(internal_avro::jsonData)));
 
   return ts;
 }

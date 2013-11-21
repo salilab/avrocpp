@@ -28,7 +28,7 @@
 /// allow composition from other schemas.
 ///
 
-namespace avro {
+namespace internal_avro {
 
 /// The root Schema object is a base class.  Nobody constructs this class
 /// directly.
@@ -128,6 +128,6 @@ class AVRO_DECL SymbolicSchema : public Schema {
  public:
   SymbolicSchema(const Name &name, const NodePtr &link);
 };
-}  // namespace avro
+}  // namespace internal_avro
 
 #endif

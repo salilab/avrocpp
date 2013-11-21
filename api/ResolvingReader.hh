@@ -26,7 +26,7 @@
 #include "ResolverSchema.hh"
 #include "Reader.hh"
 
-namespace avro {
+namespace internal_avro {
 
 class AVRO_DECL ResolvingReader : private boost::noncopyable {
 
@@ -44,6 +44,6 @@ class AVRO_DECL ResolvingReader : private boost::noncopyable {
   ResolverSchema schema_;
 };
 
-}  // namespace avro
+}  // namespace internal_avro
 
 #endif

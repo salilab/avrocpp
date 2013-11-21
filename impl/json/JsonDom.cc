@@ -25,7 +25,7 @@
 #include "Stream.hh"
 #include "JsonIO.hh"
 
-namespace avro {
+namespace internal_avro {
 namespace json {
 
 Entity readEntity(JsonParser& p) {

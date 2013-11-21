@@ -26,7 +26,7 @@
 /// \file Layout.hh
 ///
 
-namespace avro {
+namespace internal_avro {
 
 class AVRO_DECL Layout : private boost::noncopyable {
 
@@ -61,6 +61,6 @@ class AVRO_DECL CompoundLayout : public Layout {
   boost::ptr_vector<Layout> layouts_;
 };
 
-}  // namespace avro
+}  // namespace internal_avro
 
 #endif

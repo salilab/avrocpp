@@ -43,7 +43,7 @@
 /// buffering required to break large maps and arrays into blocks,
 /// which is necessary for applications that want to do streaming.
 
-namespace avro {
+namespace internal_avro {
 
 /**
  * The abstract base class for all Avro encoders. The implementations
@@ -160,6 +160,6 @@ AVRO_DECL EncoderPtr
  */
 AVRO_DECL EncoderPtr jsonEncoder(const ValidSchema& schema);
 
-}  // namespace avro
+}  // namespace internal_avro
 
 #endif

@@ -24,7 +24,7 @@
 
 #include <boost/random/mersenne_twister.hpp>
 
-namespace avro {
+namespace internal_avro {
 using std::auto_ptr;
 using std::ostringstream;
 using std::istringstream;
@@ -88,16 +88,16 @@ void DataFileWriterBase::sync() {
   encoderPtr_->flush();
 
   encoderPtr_->init(*stream_);
-  avro::encode(*encoderPtr_, objectCount_);
+  internal_avro::encode(*encoderPtr_, objectCount_);
   int64_t byteCount = buffer_->byteCount();
-  avro::encode(*encoderPtr_, byteCount);
+  internal_avro::encode(*encoderPtr_, byteCount);
   encoderPtr_->flush();
 
   auto_ptr<InputStream> in = memoryInputStream(*buffer_);
   copy(*in, *stream_);
 
   encoderPtr_->init(*stream_);
-  avro::encode(*encoderPtr_, sync_);
+  internal_avro::encode(*encoderPtr_, sync_);
   encoderPtr_->flush();
 
   buffer_ = memoryOutputStream();
@@ -129,9 +129,9 @@ static Magic magic = {{'O', 'b', 'j', '\x01'}};
 
 void DataFileWriterBase::writeHeader() {
   encoderPtr_->init(*stream_);
-  avro::encode(*encoderPtr_, magic);
-  avro::encode(*encoderPtr_, metadata_);
-  avro::encode(*encoderPtr_, sync_);
+  internal_avro::encode(*encoderPtr_, magic);
+  internal_avro::encode(*encoderPtr_, metadata_);
+  internal_avro::encode(*encoderPtr_, sync_);
   encoderPtr_->flush();
 }
 
@@ -193,7 +193,7 @@ bool DataFileReaderBase::hasMore() {
   drain(*dataStream_);
   DataFileSync s;
   decoder_->init(*stream_);
-  avro::decode(*decoder_, s);
+  internal_avro::decode(*decoder_, s);
   if (s != sync_) {
     throw Exception("Sync mismatch");
   }
@@ -248,9 +248,9 @@ bool DataFileReaderBase::readDataBlock() {
     return false;
   }
   stream_->backup(n);
-  avro::decode(*decoder_, objectCount_);
+  internal_avro::decode(*decoder_, objectCount_);
   int64_t byteCount;
-  avro::decode(*decoder_, byteCount);
+  internal_avro::decode(*decoder_, byteCount);
   decoder_->init(*stream_);
 
   auto_ptr<InputStream> st =
@@ -279,11 +279,11 @@ static ValidSchema makeSchema(const vector<uint8_t>& v) {
 void DataFileReaderBase::readHeader() {
   decoder_->init(*stream_);
   Magic m;
-  avro::decode(*decoder_, m);
+  internal_avro::decode(*decoder_, m);
   if (magic != m) {
     throw Exception("Invalid data file. Magic does not match: " + filename_);
   }
-  avro::decode(*decoder_, metadata_);
+  internal_avro::decode(*decoder_, metadata_);
   Metadata::const_iterator it = metadata_.find(AVRO_SCHEMA_KEY);
   if (it == metadata_.end()) {
     throw Exception("No schema in metadata");
@@ -299,7 +299,7 @@ void DataFileReaderBase::readHeader() {
     throw Exception("Unknown codec in data file: " + toString(it->second));
   }
 
-  avro::decode(*decoder_, sync_);
+  internal_avro::decode(*decoder_, sync_);
 }
 
-}  // namespace avro
+}  // namespace internal_avro

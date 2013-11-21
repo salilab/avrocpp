@@ -44,19 +44,19 @@ using std::string;
 using std::vector;
 using std::ifstream;
 
-using avro::ValidSchema;
-using avro::OutputStream;
-using avro::InputStream;
-using avro::Encoder;
-using avro::Decoder;
-using avro::EncoderPtr;
-using avro::DecoderPtr;
-using avro::memoryInputStream;
-using avro::memoryOutputStream;
-using avro::binaryEncoder;
-using avro::validatingEncoder;
-using avro::binaryDecoder;
-using avro::validatingDecoder;
+using internal_avro::ValidSchema;
+using internal_avro::OutputStream;
+using internal_avro::InputStream;
+using internal_avro::Encoder;
+using internal_avro::Decoder;
+using internal_avro::EncoderPtr;
+using internal_avro::DecoderPtr;
+using internal_avro::memoryInputStream;
+using internal_avro::memoryOutputStream;
+using internal_avro::binaryEncoder;
+using internal_avro::validatingEncoder;
+using internal_avro::binaryDecoder;
+using internal_avro::validatingDecoder;
 
 void setRecord(testgen::RootRecord& myRecord) {
   uint8_t fixed[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
@@ -125,14 +125,14 @@ void testEncoding() {
   e->init(*os);
   testgen::RootRecord t1;
   setRecord(t1);
-  avro::encode(*e, t1);
+  internal_avro::encode(*e, t1);
   e->flush();
 
   DecoderPtr d = validatingDecoder(s, binaryDecoder());
   auto_ptr<InputStream> is = memoryInputStream(*os);
   d->init(*is);
   testgen::RootRecord t2;
-  avro::decode(*d, t2);
+  internal_avro::decode(*d, t2);
 
   check(t2, t1);
 }
@@ -183,14 +183,14 @@ void testEncoding2() {
   e->init(*os);
   T t1;
   setRecord(t1);
-  avro::encode(*e, t1);
+  internal_avro::encode(*e, t1);
   e->flush();
 
   DecoderPtr d = validatingDecoder(s, binaryDecoder());
   auto_ptr<InputStream> is = memoryInputStream(*os);
   d->init(*is);
   T t2;
-  avro::decode(*d, t2);
+  internal_avro::decode(*d, t2);
 
   check(t2, t1);
 }

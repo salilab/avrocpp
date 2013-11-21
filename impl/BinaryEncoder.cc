@@ -21,7 +21,7 @@
 #include <boost/array.hpp>
 #include <boost/make_shared.hpp>
 
-namespace avro {
+namespace internal_avro {
 
 using boost::make_shared;
 using boost::shared_ptr;
@@ -118,4 +118,4 @@ void BinaryEncoder::doEncodeLong(int64_t l) {
   size_t size = encodeInt64(l, bytes);
   out_.writeBytes(bytes.data(), size);
 }
-}  // namespace avro
+}  // namespace internal_avro

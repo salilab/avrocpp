@@ -21,7 +21,7 @@
 #include <boost/static_assert.hpp>
 #include "Types.hh"
 
-namespace avro {
+namespace internal_avro {
 
 namespace strings {
 const std::string typeToString[] = {
@@ -62,4 +62,4 @@ std::ostream &operator<<(std::ostream &os, const Null &) {
   return os;
 }
 
-}  // namespace avro
+}  // namespace internal_avro

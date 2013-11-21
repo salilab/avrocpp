@@ -18,7 +18,7 @@
 
 #include "Symbol.hh"
 
-namespace avro {
+namespace internal_avro {
 namespace parsing {
 
 using std::vector;
@@ -75,4 +75,4 @@ Symbol Symbol::error(const NodePtr& writer, const NodePtr& reader) {
 }
 
 }  // namespace parsing
-}  // namespace avro
+}  // namespace internal_avro

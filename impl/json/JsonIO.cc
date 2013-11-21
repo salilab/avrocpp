@@ -19,7 +19,7 @@
 #include "boost/math/special_functions/fpclassify.hpp"
 #include "JsonIO.hh"
 
-namespace avro {
+namespace internal_avro {
 namespace json {
 
 using std::ostringstream;

@@ -24,18 +24,18 @@
 #include "avro/Decoder.hh"
 #include "avro/Specific.hh"
 
-namespace avro {
+namespace internal_avro {
 template <typename T>
 struct codec_traits<std::complex<T> > {
   static void encode(Encoder& e, const std::complex<T>& c) {
-    avro::encode(e, std::real(c));
-    avro::encode(e, std::imag(c));
+    internal_avro::encode(e, std::real(c));
+    internal_avro::encode(e, std::imag(c));
   }
 
   static void decode(Decoder& d, std::complex<T>& c) {
     T re, im;
-    avro::decode(d, re);
-    avro::decode(d, im);
+    internal_avro::decode(d, re);
+    internal_avro::decode(d, im);
     c = std::complex<T>(re, im);
   }
 };
@@ -43,23 +43,25 @@ struct codec_traits<std::complex<T> > {
 int main() {
   std::ifstream ifs("cpx.json");
 
-  avro::ValidSchema cpxSchema;
-  avro::compileJsonSchema(ifs, cpxSchema);
+  internal_avro::ValidSchema cpxSchema;
+  internal_avro::compileJsonSchema(ifs, cpxSchema);
 
-  std::auto_ptr<avro::OutputStream> out = avro::memoryOutputStream();
-  avro::EncoderPtr e =
-      avro::validatingEncoder(cpxSchema, avro::binaryEncoder());
+  std::auto_ptr<internal_avro::OutputStream> out =
+      internal_avro::memoryOutputStream();
+  internal_avro::EncoderPtr e = internal_avro::validatingEncoder(
+      cpxSchema, internal_avro::binaryEncoder());
   e->init(*out);
   std::complex<double> c1(1.0, 2.0);
-  avro::encode(*e, c1);
+  internal_avro::encode(*e, c1);
 
-  std::auto_ptr<avro::InputStream> in = avro::memoryInputStream(*out);
-  avro::DecoderPtr d =
-      avro::validatingDecoder(cpxSchema, avro::binaryDecoder());
+  std::auto_ptr<internal_avro::InputStream> in =
+      internal_avro::memoryInputStream(*out);
+  internal_avro::DecoderPtr d = internal_avro::validatingDecoder(
+      cpxSchema, internal_avro::binaryDecoder());
   d->init(*in);
 
   std::complex<double> c2;
-  avro::decode(*d, c2);
+  internal_avro::decode(*d, c2);
   std::cout << '(' << std::real(c2) << ", " << std::imag(c2) << ')'
             << std::endl;
   return 0;

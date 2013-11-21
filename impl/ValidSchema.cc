@@ -29,7 +29,7 @@ using boost::format;
 using boost::shared_ptr;
 using boost::static_pointer_cast;
 
-namespace avro {
+namespace internal_avro {
 
 typedef std::map<Name, NodePtr> SymbolMap;
 
@@ -111,4 +111,4 @@ void ValidSchema::toFlatList(std::ostream &os) const {
   root_->printBasicInfo(os);
 }
 
-}  // namespace avro
+}  // namespace internal_avro

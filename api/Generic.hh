@@ -33,7 +33,7 @@
 #include "Decoder.hh"
 #include "ValidSchema.hh"
 
-namespace avro {
+namespace internal_avro {
 /**
  * Generic datum which can hold any Avro type. The datum has a type
  * and a value. The type is one of the Avro data types. The C++ type for
@@ -552,5 +552,5 @@ struct codec_traits<GenericDatum> {
   static void decode(Decoder& d, GenericDatum& g) { GenericReader::read(d, g); }
 };
 
-}  // namespace avro
+}  // namespace internal_avro
 #endif

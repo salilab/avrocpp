@@ -25,12 +25,12 @@
 int main(int argc, char** argv) {
   int ret = 0;
   try {
-    avro::ValidSchema schema;
+    internal_avro::ValidSchema schema;
     if (argc > 1) {
       std::ifstream in(argv[1]);
-      avro::compileJsonSchema(in, schema);
+      internal_avro::compileJsonSchema(in, schema);
     } else {
-      avro::compileJsonSchema(std::cin, schema);
+      internal_avro::compileJsonSchema(std::cin, schema);
     }
 
     if (argc > 2) {

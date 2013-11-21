@@ -39,9 +39,9 @@ using boost::array;
 using boost::shared_ptr;
 using boost::unit_test::test_suite;
 
-using avro::ValidSchema;
-using avro::GenericDatum;
-using avro::GenericRecord;
+using internal_avro::ValidSchema;
+using internal_avro::GenericDatum;
+using internal_avro::GenericRecord;
 
 const int count = 1000;
 
@@ -68,29 +68,29 @@ struct Double {
   Double(double r) : re(r) {}
 };
 
-namespace avro {
+namespace internal_avro {
 
 template <typename T>
 struct codec_traits<Complex<T> > {
   static void encode(Encoder& e, const Complex<T>& c) {
-    avro::encode(e, c.re);
-    avro::encode(e, c.im);
+    internal_avro::encode(e, c.re);
+    internal_avro::encode(e, c.im);
   }
 
   static void decode(Decoder& d, Complex<T>& c) {
-    avro::decode(d, c.re);
-    avro::decode(d, c.im);
+    internal_avro::decode(d, c.re);
+    internal_avro::decode(d, c.im);
   }
 };
 
 template <>
 struct codec_traits<Integer> {
-  static void decode(Decoder& d, Integer& c) { avro::decode(d, c.re); }
+  static void decode(Decoder& d, Integer& c) { internal_avro::decode(d, c.re); }
 };
 
 template <>
 struct codec_traits<Double> {
-  static void decode(Decoder& d, Double& c) { avro::decode(d, c.re); }
+  static void decode(Decoder& d, Double& c) { internal_avro::decode(d, c.re); }
 };
 }
 
@@ -146,7 +146,8 @@ class DataFileTest {
   void testCleanup() { BOOST_CHECK(boost::filesystem::remove(filename)); }
 
   void testWrite() {
-    avro::DataFileWriter<ComplexInteger> df(filename, writerSchema, 100);
+    internal_avro::DataFileWriter<ComplexInteger> df(filename, writerSchema,
+                                                     100);
     int64_t re = 3;
     int64_t im = 5;
     for (int i = 0; i < count; ++i, re *= im, im += 3) {
@@ -157,7 +158,7 @@ class DataFileTest {
   }
 
   void testWriteGeneric() {
-    avro::DataFileWriter<Pair> df(filename, writerSchema, 100);
+    internal_avro::DataFileWriter<Pair> df(filename, writerSchema, 100);
     int64_t re = 3;
     int64_t im = 5;
     Pair p(writerSchema, GenericDatum());
@@ -175,7 +176,8 @@ class DataFileTest {
   }
 
   void testWriteDouble() {
-    avro::DataFileWriter<ComplexDouble> df(filename, writerSchema, 100);
+    internal_avro::DataFileWriter<ComplexDouble> df(filename, writerSchema,
+                                                    100);
     double re = 3.0;
     double im = 5.0;
     for (int i = 0; i < count; ++i, re += im - 0.7, im += 3.1) {
@@ -189,7 +191,7 @@ class DataFileTest {
     testWriteDouble();
     uintmax_t size = boost::filesystem::file_size(filename);
     {
-      avro::DataFileWriter<Pair> df(filename, writerSchema, 100);
+      internal_avro::DataFileWriter<Pair> df(filename, writerSchema, 100);
       df.close();
     }
     uintmax_t new_size = boost::filesystem::file_size(filename);
@@ -197,7 +199,7 @@ class DataFileTest {
   }
 
   void testReadFull() {
-    avro::DataFileReader<ComplexInteger> df(filename, writerSchema);
+    internal_avro::DataFileReader<ComplexInteger> df(filename, writerSchema);
     int i = 0;
     ComplexInteger ci;
     int64_t re = 3;
@@ -213,7 +215,7 @@ class DataFileTest {
   }
 
   void testReadProjection() {
-    avro::DataFileReader<Integer> df(filename, readerSchema);
+    internal_avro::DataFileReader<Integer> df(filename, readerSchema);
     int i = 0;
     Integer integer;
     int64_t re = 3;
@@ -228,7 +230,7 @@ class DataFileTest {
   }
 
   void testReaderGeneric() {
-    avro::DataFileReader<Pair> df(filename, writerSchema);
+    internal_avro::DataFileReader<Pair> df(filename, writerSchema);
     int i = 0;
     Pair p(writerSchema, GenericDatum());
     int64_t re = 3;
@@ -236,16 +238,16 @@ class DataFileTest {
 
     const GenericDatum& ci = p.second;
     while (df.read(p)) {
-      BOOST_REQUIRE_EQUAL(ci.type(), avro::AVRO_RECORD);
+      BOOST_REQUIRE_EQUAL(ci.type(), internal_avro::AVRO_RECORD);
       const GenericRecord& r = ci.value<GenericRecord>();
       const size_t n = 2;
       BOOST_REQUIRE_EQUAL(r.fieldCount(), n);
       const GenericDatum& f0 = r.fieldAt(0);
-      BOOST_REQUIRE_EQUAL(f0.type(), avro::AVRO_LONG);
+      BOOST_REQUIRE_EQUAL(f0.type(), internal_avro::AVRO_LONG);
       BOOST_CHECK_EQUAL(f0.value<int64_t>(), re);
 
       const GenericDatum& f1 = r.fieldAt(1);
-      BOOST_REQUIRE_EQUAL(f1.type(), avro::AVRO_LONG);
+      BOOST_REQUIRE_EQUAL(f1.type(), internal_avro::AVRO_LONG);
       BOOST_CHECK_EQUAL(f1.value<int64_t>(), im);
       re *= im;
       im += 3;
@@ -255,7 +257,7 @@ class DataFileTest {
   }
 
   void testReaderGenericProjection() {
-    avro::DataFileReader<Pair> df(filename, readerSchema);
+    internal_avro::DataFileReader<Pair> df(filename, readerSchema);
     int i = 0;
     Pair p(readerSchema, GenericDatum());
     int64_t re = 3;
@@ -263,12 +265,12 @@ class DataFileTest {
 
     const GenericDatum& ci = p.second;
     while (df.read(p)) {
-      BOOST_REQUIRE_EQUAL(ci.type(), avro::AVRO_RECORD);
+      BOOST_REQUIRE_EQUAL(ci.type(), internal_avro::AVRO_RECORD);
       const GenericRecord& r = ci.value<GenericRecord>();
       const size_t n = 1;
       BOOST_REQUIRE_EQUAL(r.fieldCount(), n);
       const GenericDatum& f0 = r.fieldAt(0);
-      BOOST_REQUIRE_EQUAL(f0.type(), avro::AVRO_LONG);
+      BOOST_REQUIRE_EQUAL(f0.type(), internal_avro::AVRO_LONG);
       BOOST_CHECK_EQUAL(f0.value<int64_t>(), re);
 
       re *= im;
@@ -279,7 +281,7 @@ class DataFileTest {
   }
 
   void testReadDouble() {
-    avro::DataFileReader<ComplexDouble> df(filename, writerSchema);
+    internal_avro::DataFileReader<ComplexDouble> df(filename, writerSchema);
     int i = 0;
     ComplexDouble ci;
     double re = 3.0;
@@ -298,9 +300,9 @@ class DataFileTest {
    * Constructs the DataFileReader in two steps.
    */
   void testReadDoubleTwoStep() {
-    auto_ptr<avro::DataFileReaderBase> base(
-        new avro::DataFileReaderBase(filename));
-    avro::DataFileReader<ComplexDouble> df(base);
+    auto_ptr<internal_avro::DataFileReaderBase> base(
+        new internal_avro::DataFileReaderBase(filename));
+    internal_avro::DataFileReader<ComplexDouble> df(base);
     BOOST_CHECK_EQUAL(toString(writerSchema), toString(df.readerSchema()));
     BOOST_CHECK_EQUAL(toString(writerSchema), toString(df.dataSchema()));
     int i = 0;
@@ -322,9 +324,9 @@ class DataFileTest {
    * reader schema.
    */
   void testReadDoubleTwoStepProject() {
-    auto_ptr<avro::DataFileReaderBase> base(
-        new avro::DataFileReaderBase(filename));
-    avro::DataFileReader<Double> df(base, readerSchema);
+    auto_ptr<internal_avro::DataFileReaderBase> base(
+        new internal_avro::DataFileReaderBase(filename));
+    internal_avro::DataFileReader<Double> df(base, readerSchema);
 
     BOOST_CHECK_EQUAL(toString(readerSchema), toString(df.readerSchema()));
     BOOST_CHECK_EQUAL(toString(writerSchema), toString(df.dataSchema()));

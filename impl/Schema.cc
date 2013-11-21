@@ -18,7 +18,7 @@
 
 #include "Schema.hh"
 
-namespace avro {
+namespace internal_avro {
 
 Schema::Schema() {}
 
@@ -89,4 +89,4 @@ FixedSchema::FixedSchema(int size, const std::string &name)
 SymbolicSchema::SymbolicSchema(const Name &name, const NodePtr &link)
     : Schema(new NodeSymbolic(HasName(name), link)) {}
 
-}  // namespace avro
+}  // namespace internal_avro

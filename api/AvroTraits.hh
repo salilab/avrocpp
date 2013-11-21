@@ -28,7 +28,7 @@
 /// Define an is_serializable trait for types we can serialize natively.
 /// New types will need to define the trait as well.
 
-namespace avro {
+namespace internal_avro {
 
 template <typename T>
 struct is_serializable : public boost::false_type {};
@@ -63,6 +63,6 @@ DEFINE_PRIMITIVE(Null, AVRO_NULL)
 DEFINE_PRIMITIVE(std::string, AVRO_STRING)
 DEFINE_PRIMITIVE(std::vector<uint8_t>, AVRO_BYTES)
 
-}  // namespace avro
+}  // namespace internal_avro
 
 #endif

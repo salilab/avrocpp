@@ -21,7 +21,7 @@
 #include "Resolver.hh"
 #include "ValidSchema.hh"
 
-namespace avro {
+namespace internal_avro {
 
 ResolverSchema::ResolverSchema(const ValidSchema &writerSchema,
                                const ValidSchema &readerSchema,
@@ -32,4 +32,4 @@ void ResolverSchema::parse(Reader &reader, uint8_t *address) {
   resolver_->parse(reader, address);
 }
 
-}  // namespace avro
+}  // namespace internal_avro

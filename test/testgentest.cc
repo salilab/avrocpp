@@ -202,18 +202,18 @@ struct TestCodeGenerator {
 
   void serializeToScreen() {
     std::cout << "Serialize:\n";
-    avro::Writer writer;
+    internal_avro::Writer writer;
 
-    avro::serialize(writer, myRecord_);
+    internal_avro::serialize(writer, myRecord_);
     std::cout << writer.buffer();
     std::cout << "end Serialize\n";
   }
 
   void serializeToScreenValid() {
     std::cout << "Validated Serialize:\n";
-    avro::ValidatingWriter writer(schema_);
+    internal_avro::ValidatingWriter writer(schema_);
 
-    avro::serialize(writer, myRecord_);
+    internal_avro::serialize(writer, myRecord_);
     std::cout << writer.buffer();
     std::cout << "end Validated Serialize\n";
   }
@@ -298,31 +298,31 @@ struct TestCodeGenerator {
   }
 
   void testParser() {
-    avro::Writer s;
+    internal_avro::Writer s;
 
-    avro::serialize(s, myRecord_);
+    internal_avro::serialize(s, myRecord_);
 
     testgen::RootRecord inRecord;
-    avro::Reader p(s.buffer());
-    avro::parse(p, inRecord);
+    internal_avro::Reader p(s.buffer());
+    internal_avro::parse(p, inRecord);
 
     checkOk(myRecord_, inRecord);
   }
 
   void testParserValid() {
-    avro::ValidatingWriter s(schema_);
+    internal_avro::ValidatingWriter s(schema_);
 
-    avro::serialize(s, myRecord_);
+    internal_avro::serialize(s, myRecord_);
 
     testgen::RootRecord inRecord;
-    avro::ValidatingReader p(schema_, s.buffer());
-    avro::parse(p, inRecord);
+    internal_avro::ValidatingReader p(schema_, s.buffer());
+    internal_avro::parse(p, inRecord);
 
     checkOk(myRecord_, inRecord);
   }
 
   void testNameIndex() {
-    const avro::NodePtr &node = schema_.root();
+    const internal_avro::NodePtr &node = schema_.root();
     size_t index = 0;
     bool found = node->nameIndex("anothernested", index);
     BOOST_CHECK_EQUAL(found, true);
@@ -332,7 +332,7 @@ struct TestCodeGenerator {
     BOOST_CHECK_EQUAL(found, true);
     BOOST_CHECK_EQUAL(index, 4U);
 
-    const avro::NodePtr &enumNode = node->leafAt(index);
+    const internal_avro::NodePtr &enumNode = node->leafAt(index);
     found = enumNode->nameIndex("one", index);
     BOOST_CHECK_EQUAL(found, true);
     BOOST_CHECK_EQUAL(index, 1U);
@@ -355,11 +355,11 @@ struct TestCodeGenerator {
   TestCodeGenerator() {
     setRecord(myRecord_);
     std::ifstream in(gWriter.c_str());
-    avro::compileJsonSchema(in, schema_);
+    internal_avro::compileJsonSchema(in, schema_);
   }
 
   testgen::RootRecord myRecord_;
-  avro::ValidSchema schema_;
+  internal_avro::ValidSchema schema_;
 };
 
 struct TestSchemaResolving {
@@ -457,28 +457,29 @@ struct TestSchemaResolving {
     }
   }
 
-  avro::InputBuffer serializeWriteRecordToBuffer() {
+  internal_avro::InputBuffer serializeWriteRecordToBuffer() {
     std::ostringstream ostring;
-    avro::Writer s;
-    avro::serialize(s, writeRecord_);
+    internal_avro::Writer s;
+    internal_avro::serialize(s, writeRecord_);
     return s.buffer();
   }
 
-  void parseData(const avro::InputBuffer &buf, avro::ResolverSchema &xSchema) {
-    avro::ResolvingReader r(xSchema, buf);
+  void parseData(const internal_avro::InputBuffer &buf,
+                 internal_avro::ResolverSchema &xSchema) {
+    internal_avro::ResolvingReader r(xSchema, buf);
 
-    avro::parse(r, readRecord_);
+    internal_avro::parse(r, readRecord_);
   }
 
   void test() {
     std::cout << "Running schema resolution tests\n";
     testgen2::RootRecord_Layout layout;
 
-    avro::ResolverSchema xSchema(writerSchema_, readerSchema_, layout);
+    internal_avro::ResolverSchema xSchema(writerSchema_, readerSchema_, layout);
 
     printRecord(writeRecord_);
 
-    avro::InputBuffer buffer = serializeWriteRecordToBuffer();
+    internal_avro::InputBuffer buffer = serializeWriteRecordToBuffer();
     parseData(buffer, xSchema);
 
     printRecord(readRecord_);
@@ -490,17 +491,17 @@ struct TestSchemaResolving {
   TestSchemaResolving() {
     setRecord(writeRecord_);
     std::ifstream win(gWriter.c_str());
-    avro::compileJsonSchema(win, writerSchema_);
+    internal_avro::compileJsonSchema(win, writerSchema_);
 
     std::ifstream rin(gReader.c_str());
-    avro::compileJsonSchema(rin, readerSchema_);
+    internal_avro::compileJsonSchema(rin, readerSchema_);
   }
 
   testgen::RootRecord writeRecord_;
-  avro::ValidSchema writerSchema_;
+  internal_avro::ValidSchema writerSchema_;
 
   testgen2::RootRecord readRecord_;
-  avro::ValidSchema readerSchema_;
+  internal_avro::ValidSchema readerSchema_;
 };
 
 template <typename T>

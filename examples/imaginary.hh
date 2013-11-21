@@ -29,11 +29,13 @@ struct cpx {
   double im;
 };
 }
-namespace avro {
+namespace internal_avro {
 template <>
 struct codec_traits<i::cpx> {
-  static void encode(Encoder& e, const i::cpx& v) { avro::encode(e, v.im); }
-  static void decode(Decoder& d, i::cpx& v) { avro::decode(d, v.im); }
+  static void encode(Encoder& e, const i::cpx& v) {
+    internal_avro::encode(e, v.im);
+  }
+  static void decode(Decoder& d, i::cpx& v) { internal_avro::decode(d, v.im); }
 };
 }
 #endif

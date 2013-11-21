@@ -28,7 +28,7 @@
 /// \file Resolver.hh
 ///
 
-namespace avro {
+namespace internal_avro {
 
 class ValidSchema;
 class Layout;
@@ -44,6 +44,6 @@ Resolver *constructResolver(const ValidSchema &rwriterSchema,
                             const ValidSchema &readerSchema,
                             const Layout &readerLayout);
 
-}  // namespace avro
+}  // namespace internal_avro
 
 #endif

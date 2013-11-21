@@ -27,7 +27,7 @@
  * \brief The implementation details for the Buffer iterators.
  **/
 
-namespace avro {
+namespace internal_avro {
 
 namespace detail {
 

@@ -27,7 +27,7 @@
 ///
 /// Standalone serialize functions for Avro types.
 
-namespace avro {
+namespace internal_avro {
 
 /// The main serializer entry point function.  Takes a serializer (either
 /// validating or
@@ -64,6 +64,6 @@ void serialize(Writer &s, const std::vector<uint8_t> &val,
 
 // @}
 
-}  // namespace avro
+}  // namespace internal_avro
 
 #endif

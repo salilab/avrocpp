@@ -21,20 +21,22 @@
 #include "avro/Decoder.hh"
 
 int main() {
-  std::auto_ptr<avro::OutputStream> out = avro::memoryOutputStream();
-  avro::EncoderPtr e = avro::binaryEncoder();
+  std::auto_ptr<internal_avro::OutputStream> out =
+      internal_avro::memoryOutputStream();
+  internal_avro::EncoderPtr e = internal_avro::binaryEncoder();
   e->init(*out);
   c::cpx c1;
   c1.re = 1.0;
   c1.im = 2.13;
-  avro::encode(*e, c1);
+  internal_avro::encode(*e, c1);
 
-  std::auto_ptr<avro::InputStream> in = avro::memoryInputStream(*out);
-  avro::DecoderPtr d = avro::binaryDecoder();
+  std::auto_ptr<internal_avro::InputStream> in =
+      internal_avro::memoryInputStream(*out);
+  internal_avro::DecoderPtr d = internal_avro::binaryDecoder();
   d->init(*in);
 
   c::cpx c2;
-  avro::decode(*d, c2);
+  internal_avro::decode(*d, c2);
   std::cout << '(' << c2.re << ", " << c2.im << ')' << std::endl;
   return 0;
 }

@@ -28,7 +28,7 @@ using std::vector;
 using std::map;
 using boost::array;
 
-namespace avro {
+namespace internal_avro {
 
 class C {
   int32_t i_;
@@ -72,7 +72,7 @@ class Test {
 
   template <typename T>
   void encode(const T& t) {
-    avro::encode(*e, t);
+    internal_avro::encode(*e, t);
     e->flush();
   }
 
@@ -80,7 +80,7 @@ class Test {
   void decode(T& t) {
     auto_ptr<InputStream> is = memoryInputStream(*os);
     d->init(*is);
-    avro::decode(*d, t);
+    internal_avro::decode(*d, t);
   }
 };
 
@@ -174,16 +174,16 @@ boost::unit_test::test_suite* init_unit_test_suite(int argc, char* argv[]) {
   using namespace boost::unit_test;
 
   test_suite* ts = BOOST_TEST_SUITE("Specific tests");
-  ts->add(BOOST_TEST_CASE(avro::specific::testBool));
-  ts->add(BOOST_TEST_CASE(avro::specific::testInt));
-  ts->add(BOOST_TEST_CASE(avro::specific::testLong));
-  ts->add(BOOST_TEST_CASE(avro::specific::testFloat));
-  ts->add(BOOST_TEST_CASE(avro::specific::testDouble));
-  ts->add(BOOST_TEST_CASE(avro::specific::testString));
-  ts->add(BOOST_TEST_CASE(avro::specific::testBytes));
-  ts->add(BOOST_TEST_CASE(avro::specific::testFixed));
-  ts->add(BOOST_TEST_CASE(avro::specific::testArray));
-  ts->add(BOOST_TEST_CASE(avro::specific::testMap));
-  ts->add(BOOST_TEST_CASE(avro::specific::testCustom));
+  ts->add(BOOST_TEST_CASE(internal_avro::specific::testBool));
+  ts->add(BOOST_TEST_CASE(internal_avro::specific::testInt));
+  ts->add(BOOST_TEST_CASE(internal_avro::specific::testLong));
+  ts->add(BOOST_TEST_CASE(internal_avro::specific::testFloat));
+  ts->add(BOOST_TEST_CASE(internal_avro::specific::testDouble));
+  ts->add(BOOST_TEST_CASE(internal_avro::specific::testString));
+  ts->add(BOOST_TEST_CASE(internal_avro::specific::testBytes));
+  ts->add(BOOST_TEST_CASE(internal_avro::specific::testFixed));
+  ts->add(BOOST_TEST_CASE(internal_avro::specific::testArray));
+  ts->add(BOOST_TEST_CASE(internal_avro::specific::testMap));
+  ts->add(BOOST_TEST_CASE(internal_avro::specific::testCustom));
   return ts;
 }

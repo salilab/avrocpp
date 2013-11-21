@@ -23,7 +23,7 @@
 
 #include "Config.hh"
 
-namespace avro {
+namespace internal_avro {
 
 /**
  * The "type" for the schema.
@@ -92,7 +92,7 @@ AVRO_DECL const std::string &toString(Type type);
 /**
  * Writes a string form of the given type into the given ostream.
  */
-AVRO_DECL std::ostream &operator<<(std::ostream &os, avro::Type type);
+AVRO_DECL std::ostream &operator<<(std::ostream &os, internal_avro::Type type);
 
 /// define a type to identify Null in template functions
 struct AVRO_DECL Null {};
@@ -104,6 +104,6 @@ struct AVRO_DECL Null {};
  */
 std::ostream &operator<<(std::ostream &os, const Null &null);
 
-}  // namespace avro
+}  // namespace internal_avro
 
 #endif

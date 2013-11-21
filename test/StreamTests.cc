@@ -22,7 +22,7 @@
 #include <boost/test/included/unit_test_framework.hpp>
 #include <boost/test/parameterized_test.hpp>
 
-namespace avro {
+namespace internal_avro {
 namespace stream {
 
 struct CheckEmpty1 {
@@ -175,57 +175,64 @@ boost::unit_test::test_suite* init_unit_test_suite(int argc, char* argv[]) {
   boost::unit_test::test_suite* ts =
       BOOST_TEST_SUITE("Avro C++ unit test suite for streams");
 
-  ts->add(BOOST_TEST_CASE(
-      &avro::stream::testEmpty_memoryStream<avro::stream::CheckEmpty1>));
-  ts->add(BOOST_TEST_CASE(
-      &avro::stream::testEmpty_memoryStream<avro::stream::CheckEmpty2>));
+  ts->add(BOOST_TEST_CASE(&internal_avro::stream::testEmpty_memoryStream<
+                               internal_avro::stream::CheckEmpty1>));
+  ts->add(BOOST_TEST_CASE(&internal_avro::stream::testEmpty_memoryStream<
+                               internal_avro::stream::CheckEmpty2>));
 
   ts->add(BOOST_PARAM_TEST_CASE(
-      (&avro::stream::testNonEmpty_memoryStream<avro::stream::Fill1,
-                                                avro::stream::Verify1>),
-      avro::stream::data,
-      avro::stream::data +
-          sizeof(avro::stream::data) / sizeof(avro::stream::data[0])));
+      (&internal_avro::stream::testNonEmpty_memoryStream<
+            internal_avro::stream::Fill1, internal_avro::stream::Verify1>),
+      internal_avro::stream::data,
+      internal_avro::stream::data +
+          sizeof(internal_avro::stream::data) /
+              sizeof(internal_avro::stream::data[0])));
   ts->add(BOOST_PARAM_TEST_CASE(
-      (&avro::stream::testNonEmpty_memoryStream<avro::stream::Fill2,
-                                                avro::stream::Verify1>),
-      avro::stream::data,
-      avro::stream::data +
-          sizeof(avro::stream::data) / sizeof(avro::stream::data[0])));
+      (&internal_avro::stream::testNonEmpty_memoryStream<
+            internal_avro::stream::Fill2, internal_avro::stream::Verify1>),
+      internal_avro::stream::data,
+      internal_avro::stream::data +
+          sizeof(internal_avro::stream::data) /
+              sizeof(internal_avro::stream::data[0])));
   ts->add(BOOST_PARAM_TEST_CASE(
-      (&avro::stream::testNonEmpty_memoryStream<avro::stream::Fill2,
-                                                avro::stream::Verify2>),
-      avro::stream::data,
-      avro::stream::data +
-          sizeof(avro::stream::data) / sizeof(avro::stream::data[0])));
+      (&internal_avro::stream::testNonEmpty_memoryStream<
+            internal_avro::stream::Fill2, internal_avro::stream::Verify2>),
+      internal_avro::stream::data,
+      internal_avro::stream::data +
+          sizeof(internal_avro::stream::data) /
+              sizeof(internal_avro::stream::data[0])));
 
   ts->add(BOOST_PARAM_TEST_CASE(
-      &avro::stream::testNonEmpty2, avro::stream::data,
-      avro::stream::data +
-          sizeof(avro::stream::data) / sizeof(avro::stream::data[0])));
+      &internal_avro::stream::testNonEmpty2, internal_avro::stream::data,
+      internal_avro::stream::data +
+          sizeof(internal_avro::stream::data) /
+              sizeof(internal_avro::stream::data[0])));
 
-  ts->add(BOOST_TEST_CASE(
-      &avro::stream::testEmpty_fileStream<avro::stream::CheckEmpty1>));
-  ts->add(BOOST_TEST_CASE(
-      &avro::stream::testEmpty_fileStream<avro::stream::CheckEmpty2>));
+  ts->add(BOOST_TEST_CASE(&internal_avro::stream::testEmpty_fileStream<
+                               internal_avro::stream::CheckEmpty1>));
+  ts->add(BOOST_TEST_CASE(&internal_avro::stream::testEmpty_fileStream<
+                               internal_avro::stream::CheckEmpty2>));
 
   ts->add(BOOST_PARAM_TEST_CASE(
-      (&avro::stream::testNonEmpty_fileStream<avro::stream::Fill1,
-                                              avro::stream::Verify1>),
-      avro::stream::data,
-      avro::stream::data +
-          sizeof(avro::stream::data) / sizeof(avro::stream::data[0])));
+      (&internal_avro::stream::testNonEmpty_fileStream<
+            internal_avro::stream::Fill1, internal_avro::stream::Verify1>),
+      internal_avro::stream::data,
+      internal_avro::stream::data +
+          sizeof(internal_avro::stream::data) /
+              sizeof(internal_avro::stream::data[0])));
   ts->add(BOOST_PARAM_TEST_CASE(
-      (&avro::stream::testNonEmpty_fileStream<avro::stream::Fill2,
-                                              avro::stream::Verify1>),
-      avro::stream::data,
-      avro::stream::data +
-          sizeof(avro::stream::data) / sizeof(avro::stream::data[0])));
+      (&internal_avro::stream::testNonEmpty_fileStream<
+            internal_avro::stream::Fill2, internal_avro::stream::Verify1>),
+      internal_avro::stream::data,
+      internal_avro::stream::data +
+          sizeof(internal_avro::stream::data) /
+              sizeof(internal_avro::stream::data[0])));
   ts->add(BOOST_PARAM_TEST_CASE(
-      (&avro::stream::testNonEmpty_fileStream<avro::stream::Fill2,
-                                              avro::stream::Verify2>),
-      avro::stream::data,
-      avro::stream::data +
-          sizeof(avro::stream::data) / sizeof(avro::stream::data[0])));
+      (&internal_avro::stream::testNonEmpty_fileStream<
+            internal_avro::stream::Fill2, internal_avro::stream::Verify2>),
+      internal_avro::stream::data,
+      internal_avro::stream::data +
+          sizeof(internal_avro::stream::data) /
+              sizeof(internal_avro::stream::data[0])));
   return ts;
 }

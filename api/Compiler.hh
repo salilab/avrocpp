@@ -23,7 +23,7 @@
 #include <stdint.h>
 #include <istream>
 
-namespace avro {
+namespace internal_avro {
 
 class AVRO_DECL InputStream;
 
@@ -59,6 +59,6 @@ AVRO_DECL ValidSchema compileJsonSchemaFromString(const std::string& input);
 
 AVRO_DECL ValidSchema compileJsonSchemaFromFile(const char* filename);
 
-}  // namespace avro
+}  // namespace internal_avro
 
 #endif

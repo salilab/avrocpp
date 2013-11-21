@@ -28,7 +28,7 @@
 ///
 /// Standalone parse functions for Avro types.
 
-namespace avro {
+namespace internal_avro {
 
 /// The main parse entry point function.  Takes a parser (either validating or
 /// plain) and the object that should receive the parsed data.
@@ -78,6 +78,6 @@ void translatingParse(ResolvingReader &p, T &val, const boost::true_type &) {
 
 // @}
 
-}  // namespace avro
+}  // namespace internal_avro
 
 #endif

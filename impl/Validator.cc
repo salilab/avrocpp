@@ -22,7 +22,7 @@
 #include "ValidSchema.hh"
 #include "NodeImpl.hh"
 
-namespace avro {
+namespace internal_avro {
 
 Validator::Validator(const ValidSchema &schema)
     : schema_(schema),
@@ -260,4 +260,4 @@ bool Validator::getNextFieldName(std::string &name) const {
   return found;
 }
 
-}  // namespace avro
+}  // namespace internal_avro

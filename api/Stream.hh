@@ -28,7 +28,7 @@
 #include "Config.hh"
 #include "Exception.hh"
 
-namespace avro {
+namespace internal_avro {
 
 /**
  * A no-copy input stream.
@@ -405,5 +405,5 @@ inline void copy(InputStream& in, OutputStream& out) {
   w.flush();
 }
 
-}  // namespace avro
+}  // namespace internal_avro
 #endif

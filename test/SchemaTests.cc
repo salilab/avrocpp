@@ -23,7 +23,7 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/test/parameterized_test.hpp>
 
-namespace avro {
+namespace internal_avro {
 namespace schema {
 
 const char* basicSchemas[] = {
@@ -150,10 +150,12 @@ boost::unit_test::test_suite* init_unit_test_suite(int argc, char* argv[]) {
   using namespace boost::unit_test;
 
   test_suite* ts = BOOST_TEST_SUITE("Avro C++ unit tests for schemas");
-  ADD_PARAM_TEST(ts, avro::schema::testBasic, avro::schema::basicSchemas);
-  ADD_PARAM_TEST(ts, avro::schema::testBasic_fail,
-                 avro::schema::basicSchemaErrors);
-  ADD_PARAM_TEST(ts, avro::schema::testCompile, avro::schema::basicSchemas);
+  ADD_PARAM_TEST(ts, internal_avro::schema::testBasic,
+                 internal_avro::schema::basicSchemas);
+  ADD_PARAM_TEST(ts, internal_avro::schema::testBasic_fail,
+                 internal_avro::schema::basicSchemaErrors);
+  ADD_PARAM_TEST(ts, internal_avro::schema::testCompile,
+                 internal_avro::schema::basicSchemas);
 
   return ts;
 }

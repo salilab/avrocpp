@@ -36,7 +36,7 @@
  *
  **/
 
-namespace avro {
+namespace internal_avro {
 
 class OutputBuffer;
 class InputBuffer;

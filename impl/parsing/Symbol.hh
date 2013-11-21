@@ -33,7 +33,7 @@
 #include "Decoder.hh"
 #include "Exception.hh"
 
-namespace avro {
+namespace internal_avro {
 namespace parsing {
 
 class Symbol;
@@ -617,6 +617,6 @@ class SimpleParser {
 };
 
 }  // namespace parsing
-}  // namespace avro
+}  // namespace internal_avro
 
 #endif

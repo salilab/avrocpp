@@ -37,7 +37,7 @@
 #include "Encoder.hh"
 #include "NodeImpl.hh"
 
-namespace avro {
+namespace internal_avro {
 
 using boost::make_shared;
 
@@ -615,4 +615,4 @@ ResolvingDecoderPtr resolvingDecoder(const ValidSchema& writer,
                                                                   reader, base);
 }
 
-}  // namespace avro
+}  // namespace internal_avro

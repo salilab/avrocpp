@@ -30,7 +30,7 @@
 /// \file ResolverSchema.hh
 ///
 
-namespace avro {
+namespace internal_avro {
 
 class ValidSchema;
 class Layout;
@@ -50,6 +50,6 @@ class AVRO_DECL ResolverSchema {
   boost::shared_ptr<Resolver> resolver_;
 };
 
-}  // namespace avro
+}  // namespace internal_avro
 
 #endif

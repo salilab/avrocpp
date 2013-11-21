@@ -33,7 +33,7 @@
 #include "buffer/BufferReader.hh"
 #include "buffer/BufferPrint.hh"
 
-using namespace avro;
+using namespace internal_avro;
 using std::cout;
 using std::endl;
 using detail::kDefaultBlockSize;
@@ -56,7 +56,7 @@ std::string makeString(size_t len) {
 }
 
 void printBuffer(const InputBuffer &buf) {
-  avro::istream is(buf);
+  internal_avro::istream is(buf);
   cout << is.rdbuf() << endl;
 }
 
@@ -430,7 +430,7 @@ void TestEof() {
   // character on a buffer boundary is eof
   buf1.append(buf2);
 
-  avro::istream is(buf1);
+  internal_avro::istream is(buf1);
 
   for (int i = 0; i < 3; ++i) {
     T d;
@@ -523,7 +523,7 @@ void TestSeek() {
   {
     const std::string str = "SampleMessage";
 
-    avro::OutputBuffer tmp1, tmp2, tmp3;
+    internal_avro::OutputBuffer tmp1, tmp2, tmp3;
     tmp1.writeTo(str.c_str(), 3);       // Sam
     tmp2.writeTo(str.c_str() + 3, 7);   // pleMess
     tmp3.writeTo(str.c_str() + 10, 3);  // age
@@ -535,13 +535,13 @@ void TestSeek() {
     BOOST_CHECK_EQUAL(tmp2.numDataChunks(), 2);
     BOOST_CHECK_EQUAL(tmp1.numDataChunks(), 3);
 
-    avro::InputBuffer buf(tmp1);
+    internal_avro::InputBuffer buf(tmp1);
 
     cout << "Starting string: " << str << '\n';
     BOOST_CHECK_EQUAL(static_cast<std::string::size_type>(buf.size()),
                       str.size());
 
-    avro::istream is(buf);
+    internal_avro::istream is(buf);
 
     const std::string part1 = "Sample";
     char buffer[16];
@@ -636,7 +636,7 @@ void server(boost::barrier &b) {
   b.wait();
 
   a.accept(sock);
-  avro::OutputBuffer buf(100);
+  internal_avro::OutputBuffer buf(100);
 
   size_t length = sock.receive(buf);
   buf.wroteTo(length);
@@ -646,7 +646,7 @@ void server(boost::barrier &b) {
 
   std::string res;
 
-  avro::InputBuffer::const_iterator iter = rbuf.begin();
+  internal_avro::InputBuffer::const_iterator iter = rbuf.begin();
   while (iter != rbuf.end()) {
     res.append(boost::asio::buffer_cast<const char *>(*iter),
                boost::asio::buffer_size(*iter));
@@ -689,12 +689,12 @@ void TestAsioBuffer() {
 
     std::string hello = "hello ";
     std::string world = "world";
-    avro::OutputBuffer buf;
+    internal_avro::OutputBuffer buf;
     buf.writeTo(hello.c_str(), hello.size());
 
     BOOST_CHECK_EQUAL(buf.size(), hello.size());
 
-    avro::OutputBuffer buf2;
+    internal_avro::OutputBuffer buf2;
     buf2.writeTo(world.c_str(), world.size());
     BOOST_CHECK_EQUAL(buf2.size(), world.size());
 
@@ -704,9 +704,9 @@ void TestAsioBuffer() {
     cout << "Distance " << std::distance(buf.begin(), buf.end()) << endl;
     BOOST_CHECK_EQUAL(std::distance(buf.begin(), buf.end()), 1);
 
-    const avro::InputBuffer rbuf(buf);
+    const internal_avro::InputBuffer rbuf(buf);
 
-    avro::InputBuffer::const_iterator iter = rbuf.begin();
+    internal_avro::InputBuffer::const_iterator iter = rbuf.begin();
     while (iter != rbuf.end()) {
       std::string str(boost::asio::buffer_cast<const char *>(*iter),
                       boost::asio::buffer_size(*iter));
@@ -733,11 +733,11 @@ void TestSplit() {
   {
     const std::string str = "This message is to be split";
 
-    avro::OutputBuffer buf;
+    internal_avro::OutputBuffer buf;
     buf.writeTo(str.c_str(), str.size());
 
     char datain[12];
-    avro::istream is(buf);
+    internal_avro::istream is(buf);
     size_t in = static_cast<size_t>(is.readsome(datain, sizeof(datain)));
     BOOST_CHECK_EQUAL(in, sizeof(datain));
     BOOST_CHECK_EQUAL(static_cast<size_t>(is.tellg()), sizeof(datain));
@@ -761,12 +761,12 @@ void TestSplitOnBorder() {
     const std::string part1 = "This message";
     const std::string part2 = " is to be split";
 
-    avro::OutputBuffer buf;
+    internal_avro::OutputBuffer buf;
     buf.writeTo(part1.c_str(), part1.size());
     size_t firstChunkSize = buf.size();
 
     {
-      avro::OutputBuffer tmp;
+      internal_avro::OutputBuffer tmp;
       tmp.writeTo(part2.c_str(), part2.size());
       buf.append(tmp);
       printBuffer(InputBuffer(buf));
@@ -776,7 +776,7 @@ void TestSplitOnBorder() {
     size_t bufsize = buf.size();
 
     boost::scoped_array<char> datain(new char[firstChunkSize]);
-    avro::istream is(buf);
+    internal_avro::istream is(buf);
     size_t in = static_cast<size_t>(is.readsome(&datain[0], firstChunkSize));
     BOOST_CHECK_EQUAL(in, firstChunkSize);
 
@@ -797,14 +797,14 @@ void TestSplitTwice() {
   {
     const std::string msg1 = makeString(30);
 
-    avro::OutputBuffer buf1;
+    internal_avro::OutputBuffer buf1;
     buf1.writeTo(msg1.c_str(), msg1.size());
 
     BOOST_CHECK_EQUAL(buf1.size(), msg1.size());
 
     printBuffer(buf1);
 
-    avro::istream is(buf1);
+    internal_avro::istream is(buf1);
     char buffer[6];
     is.readsome(buffer, 5);
     buffer[5] = 0;
@@ -813,7 +813,7 @@ void TestSplitTwice() {
     buf1.discardData(static_cast<size_t>(is.tellg()));
     printBuffer(buf1);
 
-    avro::istream is2(buf1);
+    internal_avro::istream is2(buf1);
     is2.seekg(15);
 
     buf1.discardData(static_cast<size_t>(is2.tellg()));
@@ -829,7 +829,7 @@ void TestCopy() {
   {
     std::cout << "Test1\n";
     // put a small amount of data in the buffer
-    avro::OutputBuffer wb;
+    internal_avro::OutputBuffer wb;
 
     wb.writeTo(msg.c_str(), msg.size());
 
@@ -840,7 +840,7 @@ void TestCopy() {
     // copy starting at offset 5 and copying 10 less bytes
     BufferReader br(wb);
     br.seek(5);
-    avro::InputBuffer ib = br.copyData(msg.size() - 10);
+    internal_avro::InputBuffer ib = br.copyData(msg.size() - 10);
 
     printBuffer(ib);
 
@@ -865,7 +865,7 @@ void TestCopy() {
     // put a small amount of data in the buffer
     const OutputBuffer::size_type bufsize = 3 * kMaxBlockSize;
 
-    avro::OutputBuffer wb(bufsize);
+    internal_avro::OutputBuffer wb(bufsize);
     BOOST_CHECK_EQUAL(wb.numChunks(), 3);
     BOOST_CHECK_EQUAL(wb.freeSpace(), bufsize);
 
@@ -877,7 +877,7 @@ void TestCopy() {
 
     BufferReader br(wb);
     br.seek(5);
-    avro::InputBuffer ib = br.copyData(msg.size() - 10);
+    internal_avro::InputBuffer ib = br.copyData(msg.size() - 10);
 
     printBuffer(ib);
 
@@ -908,7 +908,7 @@ void TestCopy() {
   {
     std::cout << "Test3\n";
     const OutputBuffer::size_type bufsize = 2 * kDefaultBlockSize;
-    avro::OutputBuffer wb;
+    internal_avro::OutputBuffer wb;
 
     for (unsigned i = 0; i < bufsize; ++i) {
       wb.writeTo('a');
@@ -922,7 +922,7 @@ void TestCopy() {
     // copy where the chunks overlap
     BufferReader br(wb);
     br.seek(bufsize / 2 - 10);
-    avro::InputBuffer ib = br.copyData(20);
+    internal_avro::InputBuffer ib = br.copyData(20);
 
     printBuffer(ib);
 
@@ -939,12 +939,12 @@ void TestCopy() {
   {
     const OutputBuffer::size_type bufsize = 2 * kMaxBlockSize;
     std::cout << "Test4\n";
-    avro::OutputBuffer wb(bufsize);
+    internal_avro::OutputBuffer wb(bufsize);
     BOOST_CHECK_EQUAL(wb.numChunks(), 2);
     BOOST_CHECK_EQUAL(wb.size(), 0U);
     BOOST_CHECK_EQUAL(wb.freeSpace(), bufsize);
 
-    avro::InputBuffer ib;
+    internal_avro::InputBuffer ib;
     try {
       BufferReader br(wb);
       br.seek(10);
@@ -954,7 +954,7 @@ void TestCopy() {
     }
     try {
       BufferReader br(wb);
-      avro::InputBuffer ib = br.copyData(10);
+      internal_avro::InputBuffer ib = br.copyData(10);
     }
     catch (std::exception &e) {
       cout << "Intentially triggered exception: " << e.what() << endl;
@@ -981,7 +981,7 @@ void TestBug() {
     rxBuf.wroteTo(2896);
 
     {
-      avro::InputBuffer ib(rxBuf.extractData());
+      internal_avro::InputBuffer ib(rxBuf.extractData());
       buf.append(ib);
     }
 
@@ -991,7 +991,7 @@ void TestBug() {
     rxBuf.wroteTo(381);
 
     {
-      avro::InputBuffer ib(rxBuf.extractData());
+      internal_avro::InputBuffer ib(rxBuf.extractData());
       buf.append(ib);
     }
 

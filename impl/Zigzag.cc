@@ -18,7 +18,7 @@
 
 #include "Zigzag.hh"
 
-namespace avro {
+namespace internal_avro {
 
 uint64_t encodeZigzag64(int64_t input) {
   return ((input << 1) ^ (input >> 63));
@@ -70,4 +70,4 @@ size_t encodeInt32(int32_t input, boost::array<uint8_t, 5> &output) {
   return bytesOut;
 }
 
-}  // namespace avro
+}  // namespace internal_avro

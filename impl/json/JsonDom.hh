@@ -27,7 +27,7 @@
 #include "boost/any.hpp"
 #include "Config.hh"
 
-namespace avro {
+namespace internal_avro {
 
 class AVRO_DECL InputStream;
 

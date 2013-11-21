@@ -37,7 +37,7 @@
 
 #include "../json/JsonIO.hh"
 
-namespace avro {
+namespace internal_avro {
 
 namespace parsing {
 
@@ -51,8 +51,8 @@ using std::reverse;
 using std::ostringstream;
 using std::istringstream;
 
-using avro::json::JsonParser;
-using avro::json::JsonGenerator;
+using internal_avro::json::JsonParser;
+using internal_avro::json::JsonGenerator;
 
 class JsonGrammarGenerator : public ValidatingGrammarGenerator {
   Production doGenerate(const NodePtr& n,
@@ -644,4 +644,4 @@ EncoderPtr jsonEncoder(const ValidSchema& schema) {
       schema);
 }
 
-}  // namespace avro
+}  // namespace internal_avro

@@ -22,7 +22,7 @@
 #include "Config.hh"
 #include "Node.hh"
 
-namespace avro {
+namespace internal_avro {
 
 class AVRO_DECL Schema;
 
@@ -55,6 +55,6 @@ class AVRO_DECL ValidSchema {
   NodePtr root_;
 };
 
-}  // namespace avro
+}  // namespace internal_avro
 
 #endif

@@ -42,9 +42,9 @@
  * as an Avro map with value type T.
  *
  * Users can have their custom types encoded/decoded by specializing
- * avro::codec_traits class for their types.
+ * internal_avro::codec_traits class for their types.
  */
-namespace avro {
+namespace internal_avro {
 
 template <typename T>
 void encode(Encoder& e, const T& t);
@@ -213,7 +213,7 @@ struct codec_traits<std::vector<T> > {
       for (typename std::vector<T>::const_iterator it = b.begin();
            it != b.end(); ++it) {
         e.startItem();
-        avro::encode(e, *it);
+        internal_avro::encode(e, *it);
       }
     }
     e.arrayEnd();
@@ -227,7 +227,7 @@ struct codec_traits<std::vector<T> > {
     for (size_t n = d.arrayStart(); n != 0; n = d.arrayNext()) {
       for (size_t i = 0; i < n; ++i) {
         T t;
-        avro::decode(d, t);
+        internal_avro::decode(d, t);
         s.push_back(t);
       }
     }
@@ -249,8 +249,8 @@ struct codec_traits<std::map<std::string, T> > {
       for (typename std::map<std::string, T>::const_iterator it = b.begin();
            it != b.end(); ++it) {
         e.startItem();
-        avro::encode(e, it->first);
-        avro::encode(e, it->second);
+        internal_avro::encode(e, it->first);
+        internal_avro::encode(e, it->second);
       }
     }
     e.mapEnd();
@@ -264,9 +264,9 @@ struct codec_traits<std::map<std::string, T> > {
     for (size_t n = d.mapStart(); n != 0; n = d.mapNext()) {
       for (size_t i = 0; i < n; ++i) {
         std::string k;
-        avro::decode(d, k);
+        internal_avro::decode(d, k);
         T t;
-        avro::decode(d, t);
+        internal_avro::decode(d, t);
         s[k] = t;
       }
     }
@@ -289,5 +289,5 @@ void decode(Decoder& d, T& t) {
   codec_traits<T>::decode(d, t);
 }
 
-}  // namespace avro
+}  // namespace internal_avro
 #endif  // avro_Codec_hh__

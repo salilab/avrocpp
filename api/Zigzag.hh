@@ -26,7 +26,7 @@
 /// \file
 /// Functions for encoding and decoding integers with zigzag compression
 
-namespace avro {
+namespace internal_avro {
 
 AVRO_DECL uint64_t encodeZigzag64(int64_t input);
 AVRO_DECL int64_t decodeZigzag64(uint64_t input);
@@ -37,6 +37,6 @@ AVRO_DECL int32_t decodeZigzag32(uint32_t input);
 AVRO_DECL size_t encodeInt32(int32_t input, boost::array<uint8_t, 5> &output);
 AVRO_DECL size_t encodeInt64(int64_t input, boost::array<uint8_t, 10> &output);
 
-}  // namespace avro
+}  // namespace internal_avro
 
 #endif

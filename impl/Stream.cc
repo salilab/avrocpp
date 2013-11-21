@@ -19,7 +19,7 @@
 #include "Stream.hh"
 #include <vector>
 
-namespace avro {
+namespace internal_avro {
 
 class MemoryInputStream : public InputStream {
   const std::vector<uint8_t*>& data_;
@@ -168,4 +168,4 @@ std::auto_ptr<InputStream> memoryInputStream(const OutputStream& source) {
                                          (mos.chunkSize_ - mos.available_)));
 }
 
-}  // namespace avro
+}  // namespace internal_avro

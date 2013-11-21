@@ -29,7 +29,7 @@
 #include "Types.hh"
 #include "SchemaResolution.hh"
 
-namespace avro {
+namespace internal_avro {
 
 class Node;
 
@@ -157,10 +157,11 @@ class AVRO_DECL Node : private boost::noncopyable {
   bool locked_;
 };
 
-}  // namespace avro
+}  // namespace internal_avro
 
 namespace std {
-inline std::ostream& operator<<(std::ostream& os, const avro::Node& n) {
+inline std::ostream& operator<<(std::ostream& os,
+                                const internal_avro::Node& n) {
   n.printJson(os, 0);
   return os;
 }

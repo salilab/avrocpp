@@ -27,7 +27,7 @@
 #include "Types.hh"
 #include "Validator.hh"
 
-namespace avro {
+namespace internal_avro {
 
 /// Class for writing avro data to a stream.
 
@@ -166,6 +166,6 @@ class WriterImpl : private boost::noncopyable {
 typedef WriterImpl<NullValidator> Writer;
 typedef WriterImpl<Validator> ValidatingWriter;
 
-}  // namespace avro
+}  // namespace internal_avro
 
 #endif

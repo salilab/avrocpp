@@ -33,7 +33,7 @@
 #include "boost/array.hpp"
 #include "boost/utility.hpp"
 
-namespace avro {
+namespace internal_avro {
 
 /**
  * The sync value.
@@ -131,7 +131,7 @@ class DataFileWriter : boost::noncopyable {
    */
   void write(const T& datum) {
     base_->syncIfNeeded();
-    avro::encode(base_->encoder(), datum);
+    internal_avro::encode(base_->encoder(), datum);
     base_->incr();
   }
 
@@ -292,7 +292,7 @@ class DataFileReader : boost::noncopyable {
   bool read(T& datum) {
     if (base_->hasMore()) {
       base_->decr();
-      avro::decode(base_->decoder(), datum);
+      internal_avro::decode(base_->decoder(), datum);
       return true;
     }
     return false;
@@ -314,5 +314,5 @@ class DataFileReader : boost::noncopyable {
   void close() { return base_->close(); }
 };
 
-}  // namespace avro
+}  // namespace internal_avro
 #endif

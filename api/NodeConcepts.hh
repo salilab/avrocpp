@@ -25,7 +25,7 @@
 #include <map>
 #include "Exception.hh"
 
-namespace avro {
+namespace internal_avro {
 
 ///
 /// The concept classes are used to simplify NodeImpl.  Since different types
@@ -187,6 +187,6 @@ struct NameIndexConcept<MultiAttribute<std::string> > {
 };
 
 }  // namespace concepts
-}  // namespace avro
+}  // namespace internal_avro
 
 #endif

@@ -30,7 +30,7 @@
  * \brief Convenience functions for printing buffer contents
  **/
 
-namespace avro {
+namespace internal_avro {
 
 namespace detail {
 
@@ -97,16 +97,16 @@ inline void hexPrint(std::ostream& os, BufferReader& reader) {
 }  // namespace
 
 inline std::ostream& operator<<(std::ostream& os,
-                                const avro::OutputBuffer& buffer) {
-  avro::BufferReader reader(buffer);
-  avro::detail::hexPrint(os, reader);
+                                const internal_avro::OutputBuffer& buffer) {
+  internal_avro::BufferReader reader(buffer);
+  internal_avro::detail::hexPrint(os, reader);
   return os;
 }
 
 inline std::ostream& operator<<(std::ostream& os,
-                                const avro::InputBuffer& buffer) {
-  avro::BufferReader reader(buffer);
-  avro::detail::hexPrint(os, reader);
+                                const internal_avro::InputBuffer& buffer) {
+  internal_avro::BufferReader reader(buffer);
+  internal_avro::detail::hexPrint(os, reader);
   return os;
 }
 

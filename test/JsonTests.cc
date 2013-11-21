@@ -26,7 +26,7 @@
 
 #define S(x) #x
 
-namespace avro {
+namespace internal_avro {
 namespace json {
 
 template <typename T>
@@ -161,27 +161,30 @@ boost::unit_test::test_suite* init_unit_test_suite(int argc, char* argv[]) {
 
   test_suite* ts = BOOST_TEST_SUITE("Avro C++ unit tests for json routines");
 
-  ts->add(BOOST_TEST_CASE(&avro::json::testNull));
+  ts->add(BOOST_TEST_CASE(&internal_avro::json::testNull));
   ts->add(BOOST_PARAM_TEST_CASE(
-      &avro::json::testPrimitive<bool>, avro::json::boolData,
-      avro::json::boolData + COUNTOF(avro::json::boolData)));
+      &internal_avro::json::testPrimitive<bool>, internal_avro::json::boolData,
+      internal_avro::json::boolData + COUNTOF(internal_avro::json::boolData)));
   ts->add(BOOST_PARAM_TEST_CASE(
-      &avro::json::testPrimitive<int64_t>, avro::json::longData,
-      avro::json::longData + COUNTOF(avro::json::longData)));
-  ts->add(BOOST_PARAM_TEST_CASE(
-      &avro::json::testDouble, avro::json::doubleData,
-      avro::json::doubleData + COUNTOF(avro::json::doubleData)));
-  ts->add(BOOST_PARAM_TEST_CASE(
-      &avro::json::testString, avro::json::stringData,
-      avro::json::stringData + COUNTOF(avro::json::stringData)));
+      &internal_avro::json::testPrimitive<int64_t>,
+      internal_avro::json::longData,
+      internal_avro::json::longData + COUNTOF(internal_avro::json::longData)));
+  ts->add(BOOST_PARAM_TEST_CASE(&internal_avro::json::testDouble,
+                                internal_avro::json::doubleData,
+                                internal_avro::json::doubleData +
+                                    COUNTOF(internal_avro::json::doubleData)));
+  ts->add(BOOST_PARAM_TEST_CASE(&internal_avro::json::testString,
+                                internal_avro::json::stringData,
+                                internal_avro::json::stringData +
+                                    COUNTOF(internal_avro::json::stringData)));
 
-  ts->add(BOOST_TEST_CASE(&avro::json::testArray0));
-  ts->add(BOOST_TEST_CASE(&avro::json::testArray1));
-  ts->add(BOOST_TEST_CASE(&avro::json::testArray2));
+  ts->add(BOOST_TEST_CASE(&internal_avro::json::testArray0));
+  ts->add(BOOST_TEST_CASE(&internal_avro::json::testArray1));
+  ts->add(BOOST_TEST_CASE(&internal_avro::json::testArray2));
 
-  ts->add(BOOST_TEST_CASE(&avro::json::testObject0));
-  ts->add(BOOST_TEST_CASE(&avro::json::testObject1));
-  ts->add(BOOST_TEST_CASE(&avro::json::testObject2));
+  ts->add(BOOST_TEST_CASE(&internal_avro::json::testObject0));
+  ts->add(BOOST_TEST_CASE(&internal_avro::json::testObject1));
+  ts->add(BOOST_TEST_CASE(&internal_avro::json::testObject2));
 
   return ts;
 }

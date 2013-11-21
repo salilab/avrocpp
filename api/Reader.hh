@@ -29,7 +29,7 @@
 #include "Validator.hh"
 #include "buffer/BufferReader.hh"
 
-namespace avro {
+namespace internal_avro {
 
 ///
 /// Parses from an avro encoding to the requested type.  Assumes the next item
@@ -191,6 +191,6 @@ class ReaderImpl : private boost::noncopyable {
 typedef ReaderImpl<NullValidator> Reader;
 typedef ReaderImpl<Validator> ValidatingReader;
 
-}  // namespace avro
+}  // namespace internal_avro
 
 #endif

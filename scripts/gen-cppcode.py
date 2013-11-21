@@ -39,7 +39,7 @@ typeToC = {
     'float': 'float',
     'double': 'double',
 
-    'boolean': 'bool', 'null': 'avro::Null', 'string': 'std::string', 'bytes': 'std::vector<uint8_t>'}
+    'boolean': 'bool', 'null': 'internal_avro::Null', 'string': 'std::string', 'bytes': 'std::vector<uint8_t>'}
 
 structList = []
 structNames = {}
@@ -70,7 +70,7 @@ def addLayout(name, type, var):
     result = '        add(new $offsetType$(offset + offsetof($name$, $var$)));\n'
     result = result.replace('$name$', name)
     if type in typeToC:
-        offsetType = 'avro::PrimitiveLayout'
+        offsetType = 'internal_avro::PrimitiveLayout'
     else:
         offsetType = type + '_Layout'
     result = result.replace('$offsetType$', offsetType)
@@ -81,7 +81,7 @@ def addLayout(name, type, var):
 def addSimpleLayout(type):
     result = '        add(new $offsetType$);\n'
     if type in typeToC:
-        offsetType = 'avro::PrimitiveLayout'
+        offsetType = 'internal_avro::PrimitiveLayout'
     else:
         offsetType = type + '_Layout'
     return result.replace('$offsetType$', offsetType)
@@ -107,7 +107,7 @@ inline void parse(Parser &p, $name$ &val, const boost::true_type &) {
 $parsefields$    p.readRecordEnd();
 }
 
-class $name$_Layout : public avro::CompoundLayout {
+class $name$_Layout : public internal_avro::CompoundLayout {
   public:
     $name$_Layout(size_t offset = 0) :
         CompoundLayout(offset)
@@ -193,7 +193,7 @@ inline void serialize(Serializer &s, const $name$ &val, const boost::true_type &
     s.writeUnion(val.choice);
     switch(val.choice) {
 $switchserialize$      default :
-        throw avro::Exception("Unrecognized union choice");
+        throw internal_avro::Exception("Unrecognized union choice");
     }
 }
 
@@ -202,17 +202,17 @@ inline void parse(Parser &p, $name$ &val, const boost::true_type &) {
     val.choice = p.readUnion();
     switch(val.choice) {
 $switchparse$      default :
-        throw avro::Exception("Unrecognized union choice");
+        throw internal_avro::Exception("Unrecognized union choice");
     }
 }
 
-class $name$_Layout : public avro::CompoundLayout {
+class $name$_Layout : public internal_avro::CompoundLayout {
   public:
     $name$_Layout(size_t offset = 0) :
         CompoundLayout(offset)
     {
-        add(new avro::PrimitiveLayout(offset + offsetof($name$, choice)));
-        add(new avro::PrimitiveLayout(offset + offsetof($name$, genericSetter)));
+        add(new internal_avro::PrimitiveLayout(offset + offsetof($name$, choice)));
+        add(new internal_avro::PrimitiveLayout(offset + offsetof($name$, genericSetter)));
 $offsetlist$    }
 };
 '''
@@ -301,12 +301,12 @@ inline void parse(Parser &p, $name$ &val, const boost::true_type &) {
     val.value = static_cast<$name$::EnumSymbols>(p.readEnum());
 }
 
-class $name$_Layout : public avro::CompoundLayout {
+class $name$_Layout : public internal_avro::CompoundLayout {
   public:
     $name$_Layout(size_t offset = 0) :
         CompoundLayout(offset)
     {
-        add(new avro::PrimitiveLayout(offset + offsetof($name$, value)));
+        add(new internal_avro::PrimitiveLayout(offset + offsetof($name$, value)));
     }
 };
 '''
@@ -390,12 +390,12 @@ inline void parse(Parser &p, $name$ &val, const boost::true_type &) {
     }
 }
 
-class $name$_Layout : public avro::CompoundLayout {
+class $name$_Layout : public internal_avro::CompoundLayout {
   public:
     $name$_Layout(size_t offset = 0) :
         CompoundLayout(offset)
     {
-        add(new avro::PrimitiveLayout(offset + offsetof($name$, genericSetter)));
+        add(new internal_avro::PrimitiveLayout(offset + offsetof($name$, genericSetter)));
 $offsetlist$    }
 };
 '''
@@ -478,12 +478,12 @@ inline void parse(Parser &p, $name$ &val, const boost::true_type &) {
     }
 }
 
-class $name$_Layout : public avro::CompoundLayout {
+class $name$_Layout : public internal_avro::CompoundLayout {
   public:
     $name$_Layout(size_t offset = 0) :
         CompoundLayout(offset)
     {
-        add(new avro::PrimitiveLayout(offset + offsetof($name$, genericSetter)));
+        add(new internal_avro::PrimitiveLayout(offset + offsetof($name$, genericSetter)));
 $offsetlist$    }
 };
 '''
@@ -530,12 +530,12 @@ inline void parse(Parser &p, $name$ &val, const boost::true_type &) {
     p.readFixed(val.value);
 }
 
-class $name$_Layout : public avro::CompoundLayout {
+class $name$_Layout : public internal_avro::CompoundLayout {
   public:
     $name$_Layout(size_t offset = 0) :
         CompoundLayout(offset)
     {
-        add(new avro::PrimitiveLayout(offset + offsetof($name$, value)));
+        add(new internal_avro::PrimitiveLayout(offset + offsetof($name$, value)));
     }
 };
 '''
@@ -569,12 +569,12 @@ inline void parse(Parser &p, $name$ &val, const boost::true_type &) {
     p.readValue(val.value);
 }
 
-class $name$_Layout : public avro::CompoundLayout {
+class $name$_Layout : public internal_avro::CompoundLayout {
   public:
     $name$_Layout(size_t offset = 0) :
         CompoundLayout(offset)
     {
-        add(new avro::PrimitiveLayout(offset + offsetof($name$, value)));
+        add(new internal_avro::PrimitiveLayout(offset + offsetof($name$, value)));
     }
 };
 '''
@@ -641,11 +641,11 @@ def writeHeader(filebase, namespace):
 
     print "\n} // namespace %s\n" % namespace
 
-    print "namespace avro {\n"
+    print "namespace internal_avro {\n"
     for x in structNames:
         print 'template <> struct is_serializable<%s::%s> : public boost::true_type{};' % (namespace, x)
 
-    print "\n} // namespace avro\n"
+    print "\n} // namespace internal_avro\n"
 
     print "#endif // %s" % headerstring
 

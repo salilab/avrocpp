@@ -27,7 +27,7 @@
 #include "Types.hh"
 #include "ValidSchema.hh"
 
-namespace avro {
+namespace internal_avro {
 
 class AVRO_DECL NullValidator : private boost::noncopyable {
  public:
@@ -131,6 +131,6 @@ class AVRO_DECL Validator : private boost::noncopyable {
   std::vector<size_t> counters_;
 };
 
-}  // namespace avro
+}  // namespace internal_avro
 
 #endif

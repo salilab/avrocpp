@@ -24,7 +24,7 @@
 #include "Config.hh"
 #include "Writer.hh"
 
-namespace avro {
+namespace internal_avro {
 
 /// Class that wraps a Writer or ValidatingWriter with an interface that uses
 /// explicit write* names instead of writeValue
@@ -87,6 +87,6 @@ class Serializer : private boost::noncopyable {
   Writer writer_;
 };
 
-}  // namespace avro
+}  // namespace internal_avro
 
 #endif

@@ -21,7 +21,7 @@
 
 #include "Config.hh"
 
-namespace avro {
+namespace internal_avro {
 
 enum SchemaResolution {
 
@@ -46,6 +46,6 @@ enum SchemaResolution {
   //@}
 };
 
-}  // namespace avro
+}  // namespace internal_avro
 
 #endif

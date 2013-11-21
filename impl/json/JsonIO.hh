@@ -27,7 +27,7 @@
 #include "Config.hh"
 #include "Stream.hh"
 
-namespace avro {
+namespace internal_avro {
 namespace json {
 
 inline char toHex(unsigned int n) {

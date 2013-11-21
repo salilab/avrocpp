@@ -28,7 +28,7 @@
 #include "Node.hh"
 #include "NodeConcepts.hh"
 
-namespace avro {
+namespace internal_avro {
 
 /// Implementation details for Node.  NodeImpl represents all the avro types,
 /// whose properties are enabled are disabled by selecting concept classes.
@@ -442,6 +442,6 @@ inline NodePtr resolveSymbol(const NodePtr &node) {
   return symNode->getNode();
 }
 
-}  // namespace avro
+}  // namespace internal_avro
 
 #endif
