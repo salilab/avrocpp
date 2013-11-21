@@ -27,7 +27,7 @@
 #include "Stream.hh"
 #include "Compiler.hh"
 
-using std::auto_ptr;
+using boost::shared_ptr;
 using std::string;
 using std::pair;
 using std::vector;
@@ -300,7 +300,7 @@ class DataFileTest {
    * Constructs the DataFileReader in two steps.
    */
   void testReadDoubleTwoStep() {
-    auto_ptr<internal_avro::DataFileReaderBase> base(
+    boost::shared_ptr<internal_avro::DataFileReaderBase> base(
         new internal_avro::DataFileReaderBase(filename));
     internal_avro::DataFileReader<ComplexDouble> df(base);
     BOOST_CHECK_EQUAL(toString(writerSchema), toString(df.readerSchema()));
@@ -324,7 +324,7 @@ class DataFileTest {
    * reader schema.
    */
   void testReadDoubleTwoStepProject() {
-    auto_ptr<internal_avro::DataFileReaderBase> base(
+    boost::shared_ptr<internal_avro::DataFileReaderBase> base(
         new internal_avro::DataFileReaderBase(filename));
     internal_avro::DataFileReader<Double> df(base, readerSchema);
 

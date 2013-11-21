@@ -150,20 +150,21 @@ class MemoryOutputStream : public OutputStream {
   void flush() {}
 };
 
-std::auto_ptr<OutputStream> memoryOutputStream(size_t chunkSize) {
-  return std::auto_ptr<OutputStream>(new MemoryOutputStream(chunkSize));
+boost::shared_ptr<OutputStream> memoryOutputStream(size_t chunkSize) {
+  return boost::shared_ptr<OutputStream>(new MemoryOutputStream(chunkSize));
 }
 
-std::auto_ptr<InputStream> memoryInputStream(const uint8_t* data, size_t len) {
-  return std::auto_ptr<InputStream>(new MemoryInputStream2(data, len));
+boost::shared_ptr<InputStream> memoryInputStream(const uint8_t* data,
+                                                 size_t len) {
+  return boost::shared_ptr<InputStream>(new MemoryInputStream2(data, len));
 }
 
-std::auto_ptr<InputStream> memoryInputStream(const OutputStream& source) {
+boost::shared_ptr<InputStream> memoryInputStream(const OutputStream& source) {
   const MemoryOutputStream& mos =
       dynamic_cast<const MemoryOutputStream&>(source);
   return (mos.data_.empty())
-             ? std::auto_ptr<InputStream>(new MemoryInputStream2(0, 0))
-             : std::auto_ptr<InputStream>(
+             ? boost::shared_ptr<InputStream>(new MemoryInputStream2(0, 0))
+             : boost::shared_ptr<InputStream>(
                    new MemoryInputStream(mos.data_, mos.chunkSize_,
                                          (mos.chunkSize_ - mos.available_)));
 }

@@ -25,7 +25,7 @@
 #include <boost/random/mersenne_twister.hpp>
 
 namespace internal_avro {
-using std::auto_ptr;
+using boost::shared_ptr;
 using std::ostringstream;
 using std::istringstream;
 using std::vector;
@@ -93,7 +93,7 @@ void DataFileWriterBase::sync() {
   internal_avro::encode(*encoderPtr_, byteCount);
   encoderPtr_->flush();
 
-  auto_ptr<InputStream> in = memoryInputStream(*buffer_);
+  boost::shared_ptr<InputStream> in = memoryInputStream(*buffer_);
   copy(*in, *stream_);
 
   encoderPtr_->init(*stream_);
@@ -235,8 +235,9 @@ class BoundedInputStream : public InputStream {
   BoundedInputStream(InputStream& in, size_t limit) : in_(in), limit_(limit) {}
 };
 
-auto_ptr<InputStream> boundedInputStream(InputStream& in, size_t limit) {
-  return auto_ptr<InputStream>(new BoundedInputStream(in, limit));
+boost::shared_ptr<InputStream> boundedInputStream(InputStream& in,
+                                                  size_t limit) {
+  return boost::shared_ptr<InputStream>(new BoundedInputStream(in, limit));
 }
 
 bool DataFileReaderBase::readDataBlock() {
@@ -253,7 +254,7 @@ bool DataFileReaderBase::readDataBlock() {
   internal_avro::decode(*decoder_, byteCount);
   decoder_->init(*stream_);
 
-  auto_ptr<InputStream> st =
+  boost::shared_ptr<InputStream> st =
       boundedInputStream(*stream_, static_cast<size_t>(byteCount));
   dataDecoder_->init(*st);
   dataStream_ = st;

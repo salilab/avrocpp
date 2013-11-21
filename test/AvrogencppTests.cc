@@ -38,7 +38,6 @@
 #undef max
 #endif
 
-using std::auto_ptr;
 using std::map;
 using std::string;
 using std::vector;
@@ -120,7 +119,7 @@ void testEncoding() {
   ValidSchema s;
   ifstream ifs("jsonschemas/bigrecord");
   compileJsonSchema(ifs, s);
-  auto_ptr<OutputStream> os = memoryOutputStream();
+  boost::shared_ptr<OutputStream> os = memoryOutputStream();
   EncoderPtr e = validatingEncoder(s, binaryEncoder());
   e->init(*os);
   testgen::RootRecord t1;
@@ -129,7 +128,7 @@ void testEncoding() {
   e->flush();
 
   DecoderPtr d = validatingDecoder(s, binaryDecoder());
-  auto_ptr<InputStream> is = memoryInputStream(*os);
+  boost::shared_ptr<InputStream> is = memoryInputStream(*os);
   d->init(*is);
   testgen::RootRecord t2;
   internal_avro::decode(*d, t2);
@@ -178,7 +177,7 @@ void testEncoding2() {
   ifstream ifs(schemaFilename<T>::value);
   compileJsonSchema(ifs, s);
 
-  auto_ptr<OutputStream> os = memoryOutputStream();
+  boost::shared_ptr<OutputStream> os = memoryOutputStream();
   EncoderPtr e = validatingEncoder(s, binaryEncoder());
   e->init(*os);
   T t1;
@@ -187,7 +186,7 @@ void testEncoding2() {
   e->flush();
 
   DecoderPtr d = validatingDecoder(s, binaryDecoder());
-  auto_ptr<InputStream> is = memoryInputStream(*os);
+  boost::shared_ptr<InputStream> is = memoryInputStream(*os);
   d->init(*is);
   T t2;
   internal_avro::decode(*d, t2);

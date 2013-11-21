@@ -105,17 +105,17 @@ struct Verify2 {
 
 template <typename V>
 void testEmpty_memoryStream() {
-  std::auto_ptr<OutputStream> os = memoryOutputStream();
-  std::auto_ptr<InputStream> is = memoryInputStream(*os);
+  boost::shared_ptr<OutputStream> os = memoryOutputStream();
+  boost::shared_ptr<InputStream> is = memoryInputStream(*os);
   V()(*is);
 }
 
 template <typename F, typename V>
 void testNonEmpty_memoryStream(const TestData& td) {
-  std::auto_ptr<OutputStream> os = memoryOutputStream(td.chunkSize);
+  boost::shared_ptr<OutputStream> os = memoryOutputStream(td.chunkSize);
   F()(*os, td.dataSize);
 
-  std::auto_ptr<InputStream> is = memoryInputStream(*os);
+  boost::shared_ptr<InputStream> is = memoryInputStream(*os);
   V()(*is, td.dataSize);
 }
 
@@ -126,7 +126,7 @@ void testNonEmpty2(const TestData& td) {
   }
 
   uint8_t v2 = 0;
-  std::auto_ptr<InputStream> is =
+  boost::shared_ptr<InputStream> is =
       memoryInputStream(v.empty() ? &v2 : &v[0], v.size());
   Verify1()(*is, td.dataSize);
 }
@@ -142,8 +142,8 @@ struct FileRemover {
 template <typename V>
 void testEmpty_fileStream() {
   FileRemover fr(filename);
-  { std::auto_ptr<OutputStream> os = fileOutputStream(filename); }
-  std::auto_ptr<InputStream> is = fileInputStream(filename);
+  { boost::shared_ptr<OutputStream> os = fileOutputStream(filename); }
+  boost::shared_ptr<InputStream> is = fileInputStream(filename);
   V()(*is);
 }
 
@@ -151,11 +151,12 @@ template <typename F, typename V>
 void testNonEmpty_fileStream(const TestData& td) {
   FileRemover fr(filename);
   {
-    std::auto_ptr<OutputStream> os = fileOutputStream(filename, td.chunkSize);
+    boost::shared_ptr<OutputStream> os =
+        fileOutputStream(filename, td.chunkSize);
     F()(*os, td.dataSize);
   }
 
-  std::auto_ptr<InputStream> is = fileInputStream(filename, td.chunkSize);
+  boost::shared_ptr<InputStream> is = fileInputStream(filename, td.chunkSize);
   V()(*is, td.dataSize);
 }
 

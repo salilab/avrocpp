@@ -51,8 +51,8 @@ class AVRO_DECL DataFileWriterBase : boost::noncopyable {
   const EncoderPtr encoderPtr_;
   const size_t syncInterval_;
 
-  std::auto_ptr<OutputStream> stream_;
-  std::auto_ptr<OutputStream> buffer_;
+  boost::shared_ptr<OutputStream> stream_;
+  boost::shared_ptr<OutputStream> buffer_;
   const DataFileSync sync_;
   int64_t objectCount_;
 
@@ -60,7 +60,7 @@ class AVRO_DECL DataFileWriterBase : boost::noncopyable {
 
   Metadata metadata_;
 
-  static std::auto_ptr<OutputStream> makeStream(const char* filename);
+  static boost::shared_ptr<OutputStream> makeStream(const char* filename);
   static DataFileSync makeSync();
 
   void writeHeader();
@@ -116,7 +116,7 @@ class AVRO_DECL DataFileWriterBase : boost::noncopyable {
  */
 template <typename T>
 class DataFileWriter : boost::noncopyable {
-  std::auto_ptr<DataFileWriterBase> base_;
+  boost::shared_ptr<DataFileWriterBase> base_;
 
  public:
   /**
@@ -157,7 +157,7 @@ class DataFileWriter : boost::noncopyable {
  */
 class AVRO_DECL DataFileReaderBase : boost::noncopyable {
   const std::string filename_;
-  const std::auto_ptr<InputStream> stream_;
+  const boost::shared_ptr<InputStream> stream_;
   const DecoderPtr decoder_;
   int64_t objectCount_;
   bool eof_;
@@ -165,7 +165,7 @@ class AVRO_DECL DataFileReaderBase : boost::noncopyable {
   ValidSchema readerSchema_;
   ValidSchema dataSchema_;
   DecoderPtr dataDecoder_;
-  std::auto_ptr<InputStream> dataStream_;
+  boost::shared_ptr<InputStream> dataStream_;
   typedef std::map<std::string, std::vector<uint8_t> > Metadata;
 
   Metadata metadata_;
@@ -235,7 +235,7 @@ class AVRO_DECL DataFileReaderBase : boost::noncopyable {
  */
 template <typename T>
 class DataFileReader : boost::noncopyable {
-  std::auto_ptr<DataFileReaderBase> base_;
+  boost::shared_ptr<DataFileReaderBase> base_;
 
  public:
   /**
@@ -265,7 +265,7 @@ class DataFileReader : boost::noncopyable {
    * The schema present in the data file will be used for reading
    * from this reader.
    */
-  DataFileReader(std::auto_ptr<DataFileReaderBase> base) : base_(base) {
+  DataFileReader(boost::shared_ptr<DataFileReaderBase> base) : base_(base) {
     base_->init();
   }
 
@@ -278,7 +278,7 @@ class DataFileReader : boost::noncopyable {
    * The argument readerSchema will be used for reading
    * from this reader.
    */
-  DataFileReader(std::auto_ptr<DataFileReaderBase> base,
+  DataFileReader(boost::shared_ptr<DataFileReaderBase> base,
                  const ValidSchema& readerSchema)
       : base_(base) {
     base_->init(readerSchema);

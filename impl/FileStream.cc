@@ -33,7 +33,6 @@
 #endif
 #endif
 
-using std::auto_ptr;
 using std::istream;
 using std::ostream;
 
@@ -132,7 +131,7 @@ struct IStreamBufferCopyIn : public BufferCopyIn {
 class BufferCopyInInputStream : public InputStream {
   const size_t bufferSize_;
   uint8_t* const buffer_;
-  auto_ptr<BufferCopyIn> in_;
+  boost::shared_ptr<BufferCopyIn> in_;
   size_t byteCount_;
   uint8_t* next_;
   size_t available_;
@@ -183,7 +182,8 @@ class BufferCopyInInputStream : public InputStream {
   }
 
  public:
-  BufferCopyInInputStream(auto_ptr<BufferCopyIn>& in, size_t bufferSize)
+  BufferCopyInInputStream(boost::shared_ptr<BufferCopyIn>& in,
+                          size_t bufferSize)
       : bufferSize_(bufferSize),
         buffer_(new uint8_t[bufferSize]),
         in_(in),
@@ -262,7 +262,7 @@ struct OStreamBufferCopyOut : public BufferCopyOut {
 class BufferCopyOutputStream : public OutputStream {
   size_t bufferSize_;
   uint8_t* const buffer_;
-  auto_ptr<BufferCopyOut> out_;
+  boost::shared_ptr<BufferCopyOut> out_;
   uint8_t* next_;
   size_t available_;
   size_t byteCount_;
@@ -295,7 +295,8 @@ class BufferCopyOutputStream : public OutputStream {
   }
 
  public:
-  BufferCopyOutputStream(auto_ptr<BufferCopyOut> out, size_t bufferSize)
+  BufferCopyOutputStream(boost::shared_ptr<BufferCopyOut> out,
+                         size_t bufferSize)
       : bufferSize_(bufferSize),
         buffer_(new uint8_t[bufferSize]),
         out_(out),
@@ -306,25 +307,32 @@ class BufferCopyOutputStream : public OutputStream {
   ~BufferCopyOutputStream() { delete[] buffer_; }
 };
 
-auto_ptr<InputStream> fileInputStream(const char* filename, size_t bufferSize) {
-  auto_ptr<BufferCopyIn> in(new FileBufferCopyIn(filename));
-  return auto_ptr<InputStream>(new BufferCopyInInputStream(in, bufferSize));
+boost::shared_ptr<InputStream> fileInputStream(const char* filename,
+                                               size_t bufferSize) {
+  boost::shared_ptr<BufferCopyIn> in(new FileBufferCopyIn(filename));
+  return boost::shared_ptr<InputStream>(
+      new BufferCopyInInputStream(in, bufferSize));
 }
 
-auto_ptr<InputStream> istreamInputStream(istream& is, size_t bufferSize) {
-  auto_ptr<BufferCopyIn> in(new IStreamBufferCopyIn(is));
-  return auto_ptr<InputStream>(new BufferCopyInInputStream(in, bufferSize));
+boost::shared_ptr<InputStream> istreamInputStream(istream& is,
+                                                  size_t bufferSize) {
+  boost::shared_ptr<BufferCopyIn> in(new IStreamBufferCopyIn(is));
+  return boost::shared_ptr<InputStream>(
+      new BufferCopyInInputStream(in, bufferSize));
 }
 
-auto_ptr<OutputStream> fileOutputStream(const char* filename,
-                                        size_t bufferSize) {
-  auto_ptr<BufferCopyOut> out(new FileBufferCopyOut(filename));
-  return auto_ptr<OutputStream>(new BufferCopyOutputStream(out, bufferSize));
+boost::shared_ptr<OutputStream> fileOutputStream(const char* filename,
+                                                 size_t bufferSize) {
+  boost::shared_ptr<BufferCopyOut> out(new FileBufferCopyOut(filename));
+  return boost::shared_ptr<OutputStream>(
+      new BufferCopyOutputStream(out, bufferSize));
 }
 
-auto_ptr<OutputStream> ostreamOutputStream(ostream& os, size_t bufferSize) {
-  auto_ptr<BufferCopyOut> out(new OStreamBufferCopyOut(os));
-  return auto_ptr<OutputStream>(new BufferCopyOutputStream(out, bufferSize));
+boost::shared_ptr<OutputStream> ostreamOutputStream(ostream& os,
+                                                    size_t bufferSize) {
+  boost::shared_ptr<BufferCopyOut> out(new OStreamBufferCopyOut(os));
+  return boost::shared_ptr<OutputStream>(
+      new BufferCopyOutputStream(out, bufferSize));
 }
 
 }  // namespace internal_avro

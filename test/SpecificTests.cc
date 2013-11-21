@@ -22,7 +22,6 @@
 #include "Specific.hh"
 #include "Stream.hh"
 
-using std::auto_ptr;
 using std::string;
 using std::vector;
 using std::map;
@@ -61,7 +60,7 @@ struct codec_traits<C> {
 namespace specific {
 
 class Test {
-  auto_ptr<OutputStream> os;
+  boost::shared_ptr<OutputStream> os;
   EncoderPtr e;
   DecoderPtr d;
 
@@ -78,7 +77,7 @@ class Test {
 
   template <typename T>
   void decode(T& t) {
-    auto_ptr<InputStream> is = memoryInputStream(*os);
+    boost::shared_ptr<InputStream> is = memoryInputStream(*os);
     d->init(*is);
     internal_avro::decode(*d, t);
   }
