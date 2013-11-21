@@ -20,6 +20,9 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/make_shared.hpp>
+#include <boost/iostreams/filtering_stream.hpp>
+#include <boost/iostreams/device/file.hpp>
+#include <boost/iostreams/filter/gzip.hpp>
 
 #include <sstream>
 
@@ -501,6 +504,61 @@ class DataFileTest {
       }
     }
   }
+
+  /**
+   * Test writing DataFiles into other streams operations.
+   */
+  void testGZip() {
+    const size_t padding_size = 1000;
+    const size_t number_of_objects = 100;
+    // first create a large file
+    ValidSchema dschema = internal_avro::compileJsonSchemaFromString(prsch);
+    {
+      boost::iostreams::filtering_ostream ostream;
+      ostream.push(boost::iostreams::gzip_compressor());
+      ostream.push(boost::iostreams::file_sink(
+          filename, std::ios_base::out | std::ios_base::binary));
+      boost::shared_ptr<internal_avro::OutputStream> stream =
+          internal_avro::ostreamOutputStream(ostream);
+      boost::shared_ptr<internal_avro::DataFileWriter<PaddedRecord> > writer =
+          boost::make_shared<internal_avro::DataFileWriter<PaddedRecord> >(
+              stream, dschema);
+
+      for (size_t i = 0; i < number_of_objects; ++i) {
+        PaddedRecord d;
+        d.index = i;
+        d.padding.resize(padding_size);
+        for (size_t j = 0; j < padding_size; ++j) {
+          // make sure all bytes appear
+          d.padding[j] = j % 256;
+        }
+        writer->write(d);
+      }
+    }
+    {
+      std::vector<int> dividers;
+      {
+        boost::iostreams::filtering_istream istream;
+        istream.push(boost::iostreams::gzip_decompressor());
+        istream.push(boost::iostreams::file_source(
+            filename, std::ios_base::in | std::ios_base::binary));
+        boost::shared_ptr<internal_avro::InputStream> stream =
+            internal_avro::istreamInputStream(istream);
+        boost::shared_ptr<internal_avro::DataFileReader<PaddedRecord> > reader =
+            boost::make_shared<internal_avro::DataFileReader<PaddedRecord> >(
+                stream);
+        std::vector<int> found;
+        PaddedRecord record;
+        while (reader->read(record)) {
+          found.push_back(record.index);
+        }
+        BOOST_CHECK_EQUAL(found.size(), number_of_objects);
+        for (unsigned int i = 0; i < found.size(); ++i) {
+          BOOST_CHECK_EQUAL(found[i], i);
+        }
+      }
+    }
+  }
 };
 
 void addReaderTests(test_suite* ts, const shared_ptr<DataFileTest>& t) {
@@ -538,6 +596,9 @@ test_suite* init_unit_test_suite(int argc, char* argv[]) {
 
   shared_ptr<DataFileTest> t6(new DataFileTest("test6.df", dsch, dblsch));
   ts->add(BOOST_CLASS_TEST_CASE(&DataFileTest::testBuffer, t6));
+
+  shared_ptr<DataFileTest> t7(new DataFileTest("test7.df", dsch, dblsch));
+  ts->add(BOOST_CLASS_TEST_CASE(&DataFileTest::testGZip, t7));
 
   return ts;
 }
