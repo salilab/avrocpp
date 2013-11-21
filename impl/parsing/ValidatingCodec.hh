@@ -31,24 +31,24 @@ namespace avro {
 namespace parsing {
 
 class ValidatingGrammarGenerator {
-protected:
-    template<typename T>
-    static void doFixup(Production& p,
-        const std::map<T, boost::shared_ptr<Production> > &m);
+ protected:
+  template <typename T>
+  static void doFixup(Production& p,
+                      const std::map<T, boost::shared_ptr<Production> >& m);
 
-    template<typename T>
-    static void doFixup(Symbol &s,
-        const std::map<T, boost::shared_ptr<Production> > &m);
-    virtual Production doGenerate(const NodePtr& n,
-        std::map<NodePtr, boost::shared_ptr<Production> > &m);
+  template <typename T>
+  static void doFixup(Symbol& s,
+                      const std::map<T, boost::shared_ptr<Production> >& m);
+  virtual Production doGenerate(
+      const NodePtr& n, std::map<NodePtr, boost::shared_ptr<Production> >& m);
 
-    Production generate(const NodePtr& schema);
-public:
-    Symbol generate(const ValidSchema& schema);
+  Production generate(const NodePtr& schema);
 
+ public:
+  Symbol generate(const ValidSchema& schema);
 };
 
-}   // namespace parsing
-}   // namespace avro
+}  // namespace parsing
+}  // namespace avro
 
 #endif

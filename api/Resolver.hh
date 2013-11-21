@@ -32,25 +32,18 @@ namespace avro {
 
 class ValidSchema;
 class Layout;
-    
-class AVRO_DECL Resolver : private boost::noncopyable
-{
 
-  public:
+class AVRO_DECL Resolver : private boost::noncopyable {
 
-    virtual void parse(Reader &reader, uint8_t *address) const = 0;
-    virtual ~Resolver() {}
-
+ public:
+  virtual void parse(Reader &reader, uint8_t *address) const = 0;
+  virtual ~Resolver() {}
 };
 
-Resolver *constructResolver(
-        const ValidSchema &rwriterSchema,
-        const ValidSchema &readerSchema,
-        const Layout &readerLayout
-    );
+Resolver *constructResolver(const ValidSchema &rwriterSchema,
+                            const ValidSchema &readerSchema,
+                            const Layout &readerLayout);
 
-
-
-} // namespace avro
+}  // namespace avro
 
 #endif
