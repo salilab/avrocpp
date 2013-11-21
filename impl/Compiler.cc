@@ -256,24 +256,23 @@ static NodePtr makeNode(const json::Entity& e, SymbolTable& st,
   }
 }
 
-AVRO_DECL ValidSchema compileJsonSchemaFromStream(InputStream& is) {
+ValidSchema compileJsonSchemaFromStream(InputStream& is) {
   json::Entity e = json::loadEntity(is);
   SymbolTable st;
   NodePtr n = makeNode(e, st, "");
   return ValidSchema(n);
 }
 
-AVRO_DECL ValidSchema
-compileJsonSchemaFromMemory(const uint8_t* input, size_t len) {
+ValidSchema compileJsonSchemaFromMemory(const uint8_t* input, size_t len) {
   return compileJsonSchemaFromStream(*memoryInputStream(input, len));
 }
 
-AVRO_DECL ValidSchema compileJsonSchemaFromString(const char* input) {
+ValidSchema compileJsonSchemaFromString(const char* input) {
   return compileJsonSchemaFromMemory(reinterpret_cast<const uint8_t*>(input),
                                      ::strlen(input));
 }
 
-AVRO_DECL ValidSchema compileJsonSchemaFromString(const std::string& input) {
+ValidSchema compileJsonSchemaFromString(const std::string& input) {
   return compileJsonSchemaFromMemory(
       reinterpret_cast<const uint8_t*>(&input[0]), input.size());
 }
@@ -283,7 +282,7 @@ static ValidSchema compile(std::istream& is) {
   return compileJsonSchemaFromStream(*in);
 }
 
-AVRO_DECL void compileJsonSchema(std::istream& is, ValidSchema& schema) {
+void compileJsonSchema(std::istream& is, ValidSchema& schema) {
   if (!is.good()) {
     throw Exception("Input stream is not good");
   }
@@ -291,8 +290,8 @@ AVRO_DECL void compileJsonSchema(std::istream& is, ValidSchema& schema) {
   schema = compile(is);
 }
 
-AVRO_DECL bool compileJsonSchema(std::istream& is, ValidSchema& schema,
-                                 std::string& error) {
+bool compileJsonSchema(std::istream& is, ValidSchema& schema,
+                       std::string& error) {
   try {
     compileJsonSchema(is, schema);
     return true;
