@@ -71,6 +71,7 @@ class AVRO_DECL DataFileWriterBase : boost::noncopyable {
    */
   void sync();
 
+  void setup();
  public:
   /**
    * Returns the current encoder for this writer.
@@ -92,6 +93,13 @@ class AVRO_DECL DataFileWriterBase : boost::noncopyable {
    */
   DataFileWriterBase(const char* filename, const ValidSchema& schema,
                      size_t syncInterval);
+
+  /**
+   * Constructs a data file writer to a given stream with the given schema
+   * and sync interval.
+   */
+  DataFileWriterBase(boost::shared_ptr<OutputStream> stream,
+                     const ValidSchema& schema, size_t syncInterval);
 
   ~DataFileWriterBase();
   /**
@@ -125,6 +133,13 @@ class DataFileWriter : boost::noncopyable {
   DataFileWriter(const char* filename, const ValidSchema& schema,
                  size_t syncInterval = 16 * 1024)
       : base_(new DataFileWriterBase(filename, schema, syncInterval)) {}
+
+  /**
+   * Constructs a new data file.
+   */
+  DataFileWriter(boost::shared_ptr<OutputStream> stream,
+                 const ValidSchema& schema, size_t syncInterval = 16 * 1024)
+      : base_(new DataFileWriterBase(stream, schema, syncInterval)) {}
 
   /**
    * Writes the given piece of data into the file.
@@ -201,6 +216,14 @@ class AVRO_DECL DataFileReaderBase : boost::noncopyable {
   DataFileReaderBase(const char* filename);
 
   /**
+   * Constructs the reader for the given stream and the reader is
+   * expected to use the schema that is used with data.
+   * This function should be called exactly once after constructing
+   * the DataFileReaderBase object.
+   */
+  DataFileReaderBase(boost::shared_ptr<InputStream> stream);
+
+  /**
    * Initializes the reader so that the reader and writer schemas
    * are the same.
    */
@@ -271,6 +294,25 @@ class DataFileReader : boost::noncopyable {
    */
   DataFileReader(const char* filename)
       : base_(new DataFileReaderBase(filename)) {
+    base_->init();
+  }
+
+  /**
+   * Constructs the reader for the given stream and the reader is
+   * expected to use the given schema.
+   */
+  DataFileReader(boost::shared_ptr<InputStream> stream,
+                 const ValidSchema& readerSchema)
+      : base_(new DataFileReaderBase(stream)) {
+    base_->init(readerSchema);
+  }
+
+  /**
+   * Constructs the reader for the given stream and the reader is
+   * expected to use the schema that is used with data.
+   */
+  DataFileReader(boost::shared_ptr<InputStream> stream)
+      : base_(new DataFileReaderBase(stream)) {
     base_->init();
   }
 
