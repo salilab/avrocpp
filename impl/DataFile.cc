@@ -59,15 +59,33 @@ DataFileWriterBase::DataFileWriterBase(const char* filename,
       buffer_(memoryOutputStream()),
       sync_(makeSync()),
       objectCount_(0) {
-  if (syncInterval < minSyncInterval || syncInterval > maxSyncInterval) {
+  setup();
+}
+
+DataFileWriterBase::DataFileWriterBase(boost::shared_ptr<OutputStream> stream,
+                                       const ValidSchema& schema,
+                                       size_t syncInterval)
+    : filename_("stream"),
+      schema_(schema),
+      encoderPtr_(binaryEncoder()),
+      syncInterval_(syncInterval),
+      stream_(stream),
+      buffer_(memoryOutputStream()),
+      sync_(makeSync()),
+      objectCount_(0) {
+  setup();
+}
+
+void DataFileWriterBase::setup() {
+  if (syncInterval_ < minSyncInterval || syncInterval_ > maxSyncInterval) {
     throw Exception(boost::format(
                         "Invalid sync interval: %1%. "
                         "Should be between %2% and %3%") %
-                    syncInterval % minSyncInterval % maxSyncInterval);
+                    syncInterval_ % minSyncInterval % maxSyncInterval);
   }
   setMetadata(AVRO_CODEC_KEY, AVRO_NULL_CODEC);
 
-  setMetadata(AVRO_SCHEMA_KEY, toString(schema));
+  setMetadata(AVRO_SCHEMA_KEY, toString(schema_));
 
   writeHeader();
   encoderPtr_->init(*buffer_);
@@ -144,6 +162,16 @@ void DataFileWriterBase::setMetadata(const string& key, const string& value) {
 DataFileReaderBase::DataFileReaderBase(const char* filename)
     : filename_(filename),
       stream_(fileInputStream(filename)),
+      decoder_(binaryDecoder()),
+      objectCount_(0),
+      eof_(false),
+      blockOffset_(0) {
+  readHeader();
+}
+
+DataFileReaderBase::DataFileReaderBase(boost::shared_ptr<InputStream> stream)
+    : filename_("stream"),
+      stream_(stream),
       decoder_(binaryDecoder()),
       objectCount_(0),
       eof_(false),
