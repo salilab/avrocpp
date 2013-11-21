@@ -20,7 +20,6 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/make_shared.hpp>
-
 #include <sstream>
 
 #include "DataFile.hh"
@@ -482,13 +481,54 @@ class DataFileTest {
       }
     }
     {
-      std::vector<int> dividers;
       {
         boost::shared_ptr<internal_avro::InputStream> inbuf =
             internal_avro::memoryInputStream(*buf);
         boost::shared_ptr<internal_avro::DataFileReader<PaddedRecord> > reader =
             boost::make_shared<internal_avro::DataFileReader<PaddedRecord> >(
                 inbuf);
+        std::vector<int> found;
+        PaddedRecord record;
+        while (reader->read(record)) {
+          found.push_back(record.index);
+        }
+        BOOST_CHECK_EQUAL(found.size(), number_of_objects);
+        for (unsigned int i = 0; i < found.size(); ++i) {
+          BOOST_CHECK_EQUAL(found[i], i);
+        }
+      }
+    }
+  }
+
+  /**
+   * Test writing DataFiles into other streams operations.
+   */
+  void testGZip() {
+    const size_t padding_size = 1000;
+    const size_t number_of_objects = 100;
+    // first create a large file
+    ValidSchema dschema = internal_avro::compileJsonSchemaFromString(prsch);
+    {
+      boost::shared_ptr<internal_avro::DataFileWriter<PaddedRecord> > writer =
+          boost::make_shared<internal_avro::DataFileWriter<PaddedRecord> >(
+              filename, dschema, 16 * 1024, true);
+
+      for (size_t i = 0; i < number_of_objects; ++i) {
+        PaddedRecord d;
+        d.index = i;
+        d.padding.resize(padding_size);
+        for (size_t j = 0; j < padding_size; ++j) {
+          // make sure all bytes appear
+          d.padding[j] = j % 256;
+        }
+        writer->write(d);
+      }
+    }
+    {
+      {
+        boost::shared_ptr<internal_avro::DataFileReader<PaddedRecord> > reader =
+            boost::make_shared<internal_avro::DataFileReader<PaddedRecord> >(
+                filename, dschema);
         std::vector<int> found;
         PaddedRecord record;
         while (reader->read(record)) {
@@ -538,6 +578,9 @@ test_suite* init_unit_test_suite(int argc, char* argv[]) {
 
   shared_ptr<DataFileTest> t6(new DataFileTest("test6.df", dsch, dblsch));
   ts->add(BOOST_CLASS_TEST_CASE(&DataFileTest::testBuffer, t6));
+
+  shared_ptr<DataFileTest> t7(new DataFileTest("test7.df", dsch, dblsch));
+  ts->add(BOOST_CLASS_TEST_CASE(&DataFileTest::testGZip, t7));
 
   return ts;
 }

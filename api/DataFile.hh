@@ -32,8 +32,17 @@
 
 #include "boost/array.hpp"
 #include "boost/utility.hpp"
+#include <boost/iostreams/filtering_stream.hpp>
+#include <boost/scoped_ptr.hpp>
 
 namespace internal_avro {
+
+/** Specify type of compression to use when writing data files. */
+enum Compression {
+  NONE,
+  GZIP,
+  ZIP
+};
 
 /**
  * The sync value.
@@ -50,6 +59,7 @@ class AVRO_DECL DataFileWriterBase : boost::noncopyable {
   const ValidSchema schema_;
   const EncoderPtr encoderPtr_;
   const size_t syncInterval_;
+  Compression compression_;
 
   boost::shared_ptr<OutputStream> stream_;
   boost::shared_ptr<OutputStream> buffer_;
@@ -92,14 +102,15 @@ class AVRO_DECL DataFileWriterBase : boost::noncopyable {
    * Constructs a data file writer with the given sync interval and name.
    */
   DataFileWriterBase(const char* filename, const ValidSchema& schema,
-                     size_t syncInterval);
+                     size_t syncInterval, Compression compression = NONE);
 
   /**
    * Constructs a data file writer to a given stream with the given schema
    * and sync interval.
    */
   DataFileWriterBase(boost::shared_ptr<OutputStream> stream,
-                     const ValidSchema& schema, size_t syncInterval);
+                     const ValidSchema& schema, size_t syncInterval,
+                     Compression compression = NONE);
 
   ~DataFileWriterBase();
   /**
@@ -131,15 +142,19 @@ class DataFileWriter : boost::noncopyable {
    * Constructs a new data file.
    */
   DataFileWriter(const char* filename, const ValidSchema& schema,
-                 size_t syncInterval = 16 * 1024)
-      : base_(new DataFileWriterBase(filename, schema, syncInterval)) {}
+                 size_t syncInterval = 16 * 1024,
+                 Compression compression = NONE)
+      : base_(new DataFileWriterBase(filename, schema, syncInterval,
+                                     compression)) {}
 
   /**
    * Constructs a new data file.
    */
   DataFileWriter(boost::shared_ptr<OutputStream> stream,
-                 const ValidSchema& schema, size_t syncInterval = 16 * 1024)
-      : base_(new DataFileWriterBase(stream, schema, syncInterval)) {}
+                 const ValidSchema& schema, size_t syncInterval = 16 * 1024,
+                 Compression compression = NONE)
+      : base_(new DataFileWriterBase(stream, schema, syncInterval,
+                                     compression)) {}
 
   /**
    * Writes the given piece of data into the file.
@@ -176,6 +191,7 @@ class AVRO_DECL DataFileReaderBase : boost::noncopyable {
   const DecoderPtr decoder_;
   int64_t objectCount_;
   bool eof_;
+  Compression compression_;
   int64_t blockOffset_;
 
   ValidSchema readerSchema_;
@@ -186,6 +202,10 @@ class AVRO_DECL DataFileReaderBase : boost::noncopyable {
 
   Metadata metadata_;
   DataFileSync sync_;
+
+  // for compressed buffer
+  boost::scoped_ptr<boost::iostreams::filtering_istream> os_;
+  std::vector<char> compressed_;
 
   void readHeader();
 

@@ -23,6 +23,9 @@
 #include <sstream>
 
 #include <boost/random/mersenne_twister.hpp>
+#include <boost/iostreams/device/file.hpp>
+#include <boost/iostreams/filter/gzip.hpp>
+#include <boost/iostreams/filter/zlib.hpp>
 
 namespace internal_avro {
 using boost::shared_ptr;
@@ -37,6 +40,8 @@ using boost::array;
 const string AVRO_SCHEMA_KEY("avro.schema");
 const string AVRO_CODEC_KEY("avro.codec");
 const string AVRO_NULL_CODEC("null");
+const string AVRO_GZIP_CODEC("gzip");
+const string AVRO_ZIP_CODEC("zip");
 
 const size_t minSyncInterval = 32;
 const size_t maxSyncInterval = 1u << 30;
@@ -50,11 +55,13 @@ static string toString(const ValidSchema& schema) {
 
 DataFileWriterBase::DataFileWriterBase(const char* filename,
                                        const ValidSchema& schema,
-                                       size_t syncInterval)
+                                       size_t syncInterval,
+                                       Compression compression)
     : filename_(filename),
       schema_(schema),
       encoderPtr_(binaryEncoder()),
       syncInterval_(syncInterval),
+      compression_(compression),
       stream_(fileOutputStream(filename)),
       buffer_(memoryOutputStream()),
       sync_(makeSync()),
@@ -64,11 +71,13 @@ DataFileWriterBase::DataFileWriterBase(const char* filename,
 
 DataFileWriterBase::DataFileWriterBase(boost::shared_ptr<OutputStream> stream,
                                        const ValidSchema& schema,
-                                       size_t syncInterval)
+                                       size_t syncInterval,
+                                       Compression compression)
     : filename_("stream"),
       schema_(schema),
       encoderPtr_(binaryEncoder()),
       syncInterval_(syncInterval),
+      compression_(compression),
       stream_(stream),
       buffer_(memoryOutputStream()),
       sync_(makeSync()),
@@ -83,8 +92,15 @@ void DataFileWriterBase::setup() {
                         "Should be between %2% and %3%") %
                     syncInterval_ % minSyncInterval % maxSyncInterval);
   }
-  setMetadata(AVRO_CODEC_KEY, AVRO_NULL_CODEC);
-
+  if (compression_ == NULL) {
+    setMetadata(AVRO_CODEC_KEY, AVRO_NULL_CODEC);
+  } else if (compression_ == GZIP) {
+    setMetadata(AVRO_CODEC_KEY, AVRO_GZIP_CODEC);
+  } else if (compression_ == ZIP) {
+    setMetadata(AVRO_CODEC_KEY, AVRO_GZIP_CODEC);
+  } else {
+    throw Exception("Unknown compression codec");
+  }
   setMetadata(AVRO_SCHEMA_KEY, toString(schema_));
 
   writeHeader();
@@ -107,13 +123,37 @@ void DataFileWriterBase::sync() {
 
   encoderPtr_->init(*stream_);
   internal_avro::encode(*encoderPtr_, objectCount_);
-  int64_t byteCount = buffer_->byteCount();
-  internal_avro::encode(*encoderPtr_, byteCount);
-  encoderPtr_->flush();
+  if (compression_ == NONE) {
+    int64_t byteCount = buffer_->byteCount();
+    internal_avro::encode(*encoderPtr_, byteCount);
+    encoderPtr_->flush();
+    boost::shared_ptr<InputStream> in = memoryInputStream(*buffer_);
+    copy(*in, *stream_);
+  } else {
+    std::vector<char> buf;
+    {
+      boost::iostreams::filtering_ostream os;
+      if (compression_ == GZIP) {
+        os.push(boost::iostreams::gzip_compressor());
+      } else if (compression_ == ZIP) {
+        os.push(boost::iostreams::zlib_compressor());
+      }
+      os.push(boost::iostreams::back_inserter(buf));
+      const uint8_t* data;
+      size_t len;
 
-  boost::shared_ptr<InputStream> in = memoryInputStream(*buffer_);
-  copy(*in, *stream_);
-
+      boost::shared_ptr<InputStream> input = memoryInputStream(*buffer_);
+      while (input->next(&data, &len)) {
+        boost::iostreams::write(os, reinterpret_cast<const char*>(data), len);
+      }
+    }
+    boost::shared_ptr<InputStream> in = memoryInputStream(
+        reinterpret_cast<const uint8_t*>(&buf[0]), buf.size());
+    int64_t byteCount = buf.size();
+    internal_avro::encode(*encoderPtr_, byteCount);
+    encoderPtr_->flush();
+    copy(*in, *stream_);
+  }
   encoderPtr_->init(*stream_);
   internal_avro::encode(*encoderPtr_, sync_);
   encoderPtr_->flush();
@@ -288,8 +328,30 @@ bool DataFileReaderBase::readDataBlock() {
 
   boost::shared_ptr<InputStream> st =
       boundedInputStream(*stream_, static_cast<size_t>(byteCount));
-  dataDecoder_->init(*st);
-  dataStream_ = st;
+  if (compression_ == NONE) {
+    dataDecoder_->init(*st);
+    dataStream_ = st;
+  } else {
+    compressed_.clear();
+    const uint8_t* data;
+    size_t len;
+    while (st->next(&data, &len)) {
+      compressed_.insert(compressed_.end(), data, data + len);
+    }
+    // boost::iostreams::write(os, reinterpret_cast<const char*>(data), len);
+    os_.reset(new boost::iostreams::filtering_istream());
+    if (compression_ == GZIP) {
+      os_->push(boost::iostreams::gzip_decompressor());
+    } else if (compression_ == ZIP) {
+      os_->push(boost::iostreams::zlib_decompressor());
+    }
+    os_->push(boost::iostreams::basic_array_source<char>(&compressed_[0],
+                                                         compressed_.size()));
+
+    boost::shared_ptr<InputStream> in = istreamInputStream(*os_);
+    dataDecoder_->init(*in);
+    dataStream_ = in;
+  }
   return true;
 }
 
@@ -441,8 +503,15 @@ void DataFileReaderBase::readHeader() {
   }
 
   it = metadata_.find(AVRO_CODEC_KEY);
-  if (it != metadata_.end() && toString(it->second) != AVRO_NULL_CODEC) {
-    throw Exception("Unknown codec in data file: " + toString(it->second));
+  if (it != metadata_.end() && toString(it->second) == AVRO_GZIP_CODEC) {
+    compression_ = GZIP;
+  } else if (it != metadata_.end() && toString(it->second) == AVRO_GZIP_CODEC) {
+    compression_ = ZIP;
+  } else {
+    compression_ = NONE;
+    if (it != metadata_.end() && toString(it->second) != AVRO_NULL_CODEC) {
+      throw Exception("Unknown codec in data file: " + toString(it->second));
+    }
   }
 
   // force the decoder to empty its buffer
