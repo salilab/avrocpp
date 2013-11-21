@@ -17,6 +17,8 @@
  */
 
 #include "Stream.hh"
+#include <fstream>
+#include <iostream>
 #ifndef _WIN32
 #include "unistd.h"
 #include "fcntl.h"
