@@ -22,9 +22,7 @@
 
 #include <sstream>
 
-#include <boost/version.hpp>
 #include <boost/random/mersenne_twister.hpp>
-#include <boost/iostreams/filtering_stream.hpp>
 #include <boost/iostreams/device/file.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
 
@@ -322,29 +320,21 @@ bool DataFileReaderBase::readDataBlock() {
     dataDecoder_->init(*st);
     dataStream_ = st;
   } else {
-#if BOOST_VERSION >= 104200
-    // a lot of copying
-    std::vector<char> block;
-    {
-      boost::iostreams::filtering_ostream os;
-      os.push(boost::iostreams::gzip_decompressor());
-      os.push(boost::iostreams::back_inserter(block));
-      const uint8_t* data;
-      size_t len;
-      while (st->next(&data, &len)) {
-        boost::iostreams::write(os, reinterpret_cast<const char*>(data), len);
-      }
+    compressed_.clear();
+    const uint8_t* data;
+    size_t len;
+    while (st->next(&data, &len)) {
+      compressed_.insert(compressed_.end(), data, data + len);
     }
-    block_.clear();
-    block_.insert(block_.end(), block.begin(), block.end());
-    assert(block_.size() == block.size());
-    boost::shared_ptr<InputStream> in =
-        memoryInputStream(&block_[0], block_.size());
+    // boost::iostreams::write(os, reinterpret_cast<const char*>(data), len);
+    os_.reset(new boost::iostreams::filtering_istream());
+    os_->push(boost::iostreams::gzip_decompressor());
+    os_->push(boost::iostreams::basic_array_source<char>(&compressed_[0],
+                                                         compressed_.size()));
+
+    boost::shared_ptr<InputStream> in = istreamInputStream(*os_);
     dataDecoder_->init(*in);
     dataStream_ = in;
-#else
-    throw Exception("No gzip decompression due to boost version");
-#endif
   }
   return true;
 }
@@ -498,11 +488,7 @@ void DataFileReaderBase::readHeader() {
 
   it = metadata_.find(AVRO_CODEC_KEY);
   if (it != metadata_.end() && toString(it->second) == AVRO_GZIP_CODEC) {
-#if BOOST_VERSION < 104200
-    throw Exception("No gzip support with this version of boost due to boost bug");
-#else
     gzip_ = true;
-#endif
   } else {
     gzip_ = false;
     if (it != metadata_.end() && toString(it->second) != AVRO_NULL_CODEC) {

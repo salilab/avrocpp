@@ -32,6 +32,8 @@
 
 #include "boost/array.hpp"
 #include "boost/utility.hpp"
+#include <boost/iostreams/filtering_stream.hpp>
+#include <boost/scoped_ptr.hpp>
 
 namespace internal_avro {
 
@@ -192,7 +194,8 @@ class AVRO_DECL DataFileReaderBase : boost::noncopyable {
   DataFileSync sync_;
 
   // for gzip buffer
-  std::vector<uint8_t> block_;
+  boost::scoped_ptr<boost::iostreams::filtering_istream> os_;
+  std::vector<char> compressed_;
 
   void readHeader();
 
