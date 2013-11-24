@@ -22,6 +22,7 @@
 
 #include <sstream>
 
+#include <boost/version.hpp>
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/iostreams/filtering_stream.hpp>
 #include <boost/iostreams/device/file.hpp>
@@ -321,6 +322,7 @@ bool DataFileReaderBase::readDataBlock() {
     dataDecoder_->init(*st);
     dataStream_ = st;
   } else {
+#if BOOST_VERSION >= 104200
     // a lot of copying
     std::vector<char> block;
     {
@@ -340,6 +342,9 @@ bool DataFileReaderBase::readDataBlock() {
         memoryInputStream(&block_[0], block_.size());
     dataDecoder_->init(*in);
     dataStream_ = in;
+#else
+    throw Exception("No gzip decompression due to boost version");
+#endif
   }
   return true;
 }
@@ -493,7 +498,11 @@ void DataFileReaderBase::readHeader() {
 
   it = metadata_.find(AVRO_CODEC_KEY);
   if (it != metadata_.end() && toString(it->second) == AVRO_GZIP_CODEC) {
+#if BOOST_VERSION < 104200
+    throw Exception("No gzip support with this version of boost due to boost bug");
+#else
     gzip_ = true;
+#endif
   } else {
     gzip_ = false;
     if (it != metadata_.end() && toString(it->second) != AVRO_NULL_CODEC) {
