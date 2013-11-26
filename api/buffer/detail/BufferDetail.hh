@@ -277,7 +277,7 @@ class BufferImpl : boost::noncopyable {
 
   /// Copy constructor, gets a copy of all the chunks with data.
   explicit BufferImpl(const BufferImpl &src)
-      : readChunks_(src.readChunks_), freeSpace_(0), size_(src.size_) {}
+    : boost::noncopyable(), readChunks_(src.readChunks_), freeSpace_(0), size_(src.size_) {}
 
   /// Amount of data held in this buffer.
   size_type size() const { return size_; }
