@@ -20,7 +20,8 @@
 #define avro_Encoder_hh__
 
 #include "Config.hh"
-#include "ZigZag.hh"
+#include "Zigzag.hh"
+#define __STDC_LIMIT_MACROS
 #include <stdint.h>
 #include <string>
 #include <vector>

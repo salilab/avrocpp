@@ -21,6 +21,7 @@
 
 #include <memory>
 #include <string.h>
+#define __STDC_LIMIT_MACROS
 #include <stdint.h>
 
 #include "boost/utility.hpp"

@@ -20,6 +20,8 @@
 #define avro_Decoder_hh__
 
 #include "Config.hh"
+
+#define __STDC_LIMIT_MACROS
 #include <stdint.h>
 #include <string>
 #include <vector>
