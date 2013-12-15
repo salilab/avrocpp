@@ -21,6 +21,7 @@
 
 #include <boost/noncopyable.hpp>
 #include <vector>
+#define __STDC_LIMIT_MACROS
 #include <stdint.h>
 
 #include "Config.hh"

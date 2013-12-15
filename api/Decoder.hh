@@ -20,6 +20,7 @@
 #define avro_Decoder_hh__
 
 #include "Config.hh"
+
 #include <stdint.h>
 #include <string>
 #include <vector>
@@ -155,6 +156,61 @@ class AVRO_DECL Decoder {
   virtual size_t decodeUnionIndex() = 0;
 };
 
+template <class Impl>
+class GenericDecoder: public Decoder {
+  Impl impl_;
+
+ public:
+  virtual ~GenericDecoder() {};
+
+  virtual void init(InputStream& is) { impl_.init(is); }
+
+  virtual void decodeNull() { impl_.decodeNull(); }
+
+  virtual bool decodeBool()  { return impl_.decodeBool();}
+
+  virtual int32_t decodeInt()  { return impl_.decodeInt();}
+
+  virtual int64_t decodeLong()  { return impl_.decodeLong();}
+
+  virtual float decodeFloat()  { return impl_.decodeFloat();}
+
+  virtual double decodeDouble() { return impl_.decodeDouble(); }
+
+  virtual void decodeString(std::string& value) { impl_.decodeString(value); }
+
+  virtual void skipString() { impl_.skipString(); }
+
+  virtual void decodeBytes(std::vector<uint8_t>& value) {
+    impl_.decodeBytes(value);
+  }
+
+  virtual void skipBytes() { impl_.skipBytes(); }
+
+  virtual void decodeFixed(size_t n, std::vector<uint8_t>& value) {
+    impl_.decodeFixed(n, value);
+  }
+
+  virtual void skipFixed(size_t n) {  impl_.skipFixed(n);}
+
+  virtual size_t decodeEnum() { return impl_.decodeEnum();}
+
+  virtual size_t arrayStart() { return impl_.arrayStart();}
+
+  virtual size_t arrayNext() { return impl_.arrayNext();}
+
+  virtual size_t skipArray() { return impl_.skipArray();}
+
+  virtual size_t mapStart() { return impl_.mapStart();}
+
+  virtual size_t mapNext() { return impl_.mapNext();}
+
+  virtual size_t skipMap() { return impl_.skipMap();}
+
+  virtual size_t decodeUnionIndex() { return impl_.decodeUnionIndex(); }
+};
+
+
 /**
  * Shared pointer to Decoder.
  */
@@ -178,6 +234,60 @@ class AVRO_DECL ResolvingDecoder : public Decoder {
  * Shared pointer to ResolvingDecoder.
  */
 typedef boost::shared_ptr<ResolvingDecoder> ResolvingDecoderPtr;
+
+class AVRO_DECL BinaryDecoder {
+  StreamReader in_;
+  const uint8_t* next_;
+  const uint8_t* end_;
+
+ public:
+  void init(InputStream& is) { in_.reset(is); }
+  void decodeNull() {}
+  bool decodeBool();
+  int32_t decodeInt();
+  int64_t decodeLong() { return doDecodeLong(); }
+  float decodeFloat() {
+    float result;
+    in_.readBytes(reinterpret_cast<uint8_t*>(&result), sizeof(float));
+    return result;
+  }
+  double decodeDouble() {
+    double result;
+    in_.readBytes(reinterpret_cast<uint8_t*>(&result), sizeof(double));
+    return result;
+  }
+  void decodeString(std::string& value) {
+    size_t len = decodeInt();
+    value.resize(len);
+    if (len > 0) {
+      in_.readBytes(reinterpret_cast<uint8_t*>(&value[0]), len);
+    }
+  }
+  void skipString()  {
+    size_t len = decodeInt();
+    in_.skipBytes(len);
+  }
+  void decodeBytes(std::vector<uint8_t>& value);
+  void skipBytes() {
+    size_t len = decodeInt();
+    in_.skipBytes(len);
+  }
+  void decodeFixed(size_t n, std::vector<uint8_t>& value);
+  void skipFixed(size_t n) { in_.skipBytes(n); }
+  size_t decodeEnum() { return static_cast<size_t>(doDecodeLong()); }
+  size_t arrayStart() { return doDecodeItemCount(); }
+  size_t arrayNext() { return static_cast<size_t>(doDecodeLong()); }
+  size_t skipArray();
+  size_t mapStart() { return doDecodeItemCount(); }
+  size_t mapNext() { return doDecodeItemCount(); }
+  size_t skipMap() { return skipArray(); }
+  size_t decodeUnionIndex() { return static_cast<size_t>(doDecodeLong()); }
+
+  int64_t doDecodeLong();
+  size_t doDecodeItemCount();
+  void more();
+};
+
 /**
  *  Returns an decoder that can decode binary Avro standard.
  */

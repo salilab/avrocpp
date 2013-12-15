@@ -20,6 +20,7 @@
 #define avro_Compiler_hh__
 
 #include "Config.hh"
+#define __STDC_LIMIT_MACROS
 #include <stdint.h>
 #include <istream>
 

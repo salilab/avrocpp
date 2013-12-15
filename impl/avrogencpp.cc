@@ -447,9 +447,11 @@ string CodeGen::generateDeclaration(const NodePtr& n) {
 void CodeGen::generateEnumTraits(const NodePtr& n) {
   string fn = fullname(decorate(n->name()));
   os_ << "template<> struct codec_traits<" << fn << "> {\n"
+      << "    template <class Encoder>\n"
       << "    static void encode(Encoder& e, " << fn << " v) {\n"
       << "        e.encodeEnum(v);\n"
       << "    }\n"
+      << "    template <class Decoder>\n"
       << "    static void decode(Decoder& d, " << fn << "& v) {\n"
       << "        v = static_cast<" << fn << ">(d.decodeEnum());\n"
       << "    }\n"
@@ -464,6 +466,7 @@ void CodeGen::generateRecordTraits(const NodePtr& n) {
 
   string fn = fullname(decorate(n->name()));
   os_ << "template<> struct codec_traits<" << fn << "> {\n"
+      << "    template <class Encoder>\n"
       << "    static void encode(Encoder& e, const " << fn << "& v) {\n";
 
   for (size_t i = 0; i < c; ++i) {
@@ -471,6 +474,7 @@ void CodeGen::generateRecordTraits(const NodePtr& n) {
   }
 
   os_ << "    }\n"
+      << "    template <class Decoder>\n"
       << "    static void decode(Decoder& d, " << fn << "& v) {\n";
 
   for (size_t i = 0; i < c; ++i) {
@@ -493,6 +497,7 @@ void CodeGen::generateUnionTraits(const NodePtr& n) {
   string fn = fullname(name);
 
   os_ << "template<> struct codec_traits<" << fn << "> {\n"
+      << "    template <class Encoder>\n"
       << "    static void encode(Encoder& e, " << fn << " v) {\n"
       << "        e.encodeUnionIndex(v.idx());\n"
       << "        switch (v.idx()) {\n";
@@ -511,6 +516,7 @@ void CodeGen::generateUnionTraits(const NodePtr& n) {
 
   os_ << "        }\n"
       << "    }\n"
+      << "    template <class Decoder>\n"
       << "    static void decode(Decoder& d, " << fn << "& v) {\n"
       << "        size_t n = d.decodeUnionIndex();\n"
       << "        if (n >= " << c << ") { throw internal_avro::Exception(\""

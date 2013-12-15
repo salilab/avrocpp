@@ -46,10 +46,10 @@
  */
 namespace internal_avro {
 
-template <typename T>
-void encode(Encoder& e, const T& t);
-template <typename T>
-void decode(Decoder& d, T& t);
+template <class E, typename T>
+void encode(E& e, const T& t);
+template <class D, typename T>
+void decode(D& d, T& t);
 
 /**
  * Codec_traits tells avro how to encode and decode an object of given type.
@@ -70,12 +70,18 @@ struct codec_traits<bool> {
   /**
    * Encodes a given value.
    */
-  static void encode(Encoder& e, bool b) { e.encodeBool(b); }
+  template <class Encoder>
+  static void encode(Encoder& e, bool b) {
+    e.encodeBool(b);
+  }
 
   /**
    * Decodes into a given value.
    */
-  static void decode(Decoder& d, bool& b) { b = d.decodeBool(); }
+  template <class Decoder>
+  static void decode(Decoder& d, bool& b) {
+    b = d.decodeBool();
+  }
 };
 
 /**
@@ -86,12 +92,18 @@ struct codec_traits<int32_t> {
   /**
    * Encodes a given value.
    */
-  static void encode(Encoder& e, int32_t i) { e.encodeInt(i); }
+  template <class Encoder>
+  static void encode(Encoder& e, int32_t i) {
+    e.encodeInt(i);
+  }
 
   /**
    * Decodes into a given value.
    */
-  static void decode(Decoder& d, int32_t& i) { i = d.decodeInt(); }
+  template <class Decoder>
+  static void decode(Decoder& d, int32_t& i) {
+    i = d.decodeInt();
+  }
 };
 
 /**
@@ -102,12 +114,18 @@ struct codec_traits<int64_t> {
   /**
    * Encodes a given value.
    */
-  static void encode(Encoder& e, int64_t l) { e.encodeLong(l); }
+  template <class Encoder>
+  static void encode(Encoder& e, int64_t l) {
+    e.encodeLong(l);
+  }
 
   /**
    * Decodes into a given value.
    */
-  static void decode(Decoder& d, int64_t& l) { l = d.decodeLong(); }
+  template <class Decoder>
+  static void decode(Decoder& d, int64_t& l) {
+    l = d.decodeLong();
+  }
 };
 
 /**
@@ -118,12 +136,18 @@ struct codec_traits<float> {
   /**
    * Encodes a given value.
    */
-  static void encode(Encoder& e, float f) { e.encodeFloat(f); }
+  template <class Encoder>
+  static void encode(Encoder& e, float f) {
+    e.encodeFloat(f);
+  }
 
   /**
    * Decodes into a given value.
    */
-  static void decode(Decoder& d, float& f) { f = d.decodeFloat(); }
+  template <class Decoder>
+  static void decode(Decoder& d, float& f) {
+    f = d.decodeFloat();
+  }
 };
 
 /**
@@ -134,12 +158,18 @@ struct codec_traits<double> {
   /**
    * Encodes a given value.
    */
-  static void encode(Encoder& e, double d) { e.encodeDouble(d); }
+  template <class Encoder>
+  static void encode(Encoder& e, double d) {
+    e.encodeDouble(d);
+  }
 
   /**
    * Decodes into a given value.
    */
-  static void decode(Decoder& d, double& dbl) { dbl = d.decodeDouble(); }
+  template <class Decoder>
+  static void decode(Decoder& d, double& dbl) {
+    dbl = d.decodeDouble();
+  }
 };
 
 /**
@@ -150,12 +180,18 @@ struct codec_traits<std::string> {
   /**
    * Encodes a given value.
    */
-  static void encode(Encoder& e, const std::string& s) { e.encodeString(s); }
+  template <class Encoder>
+  static void encode(Encoder& e, const std::string& s) {
+    e.encodeString(s);
+  }
 
   /**
    * Decodes into a given value.
    */
-  static void decode(Decoder& d, std::string& s) { s = d.decodeString(); }
+  template <class Decoder>
+  static void decode(Decoder& d, std::string& s) {
+    d.decodeString(s);
+  }
 };
 
 /**
@@ -166,14 +202,18 @@ struct codec_traits<std::vector<uint8_t> > {
   /**
    * Encodes a given value.
    */
+  template <class Encoder>
   static void encode(Encoder& e, const std::vector<uint8_t>& b) {
-    e.encodeBytes(b);
+    e.encodeBytes(&b[0], b.size());
   }
 
   /**
    * Decodes into a given value.
    */
-  static void decode(Decoder& d, std::vector<uint8_t>& s) { d.decodeBytes(s); }
+  template <class Decoder>
+  static void decode(Decoder& d, std::vector<uint8_t>& s) {
+    d.decodeBytes(s);
+  }
 };
 
 /**
@@ -184,6 +224,7 @@ struct codec_traits<boost::array<uint8_t, N> > {
   /**
    * Encodes a given value.
    */
+  template <class Encoder>
   static void encode(Encoder& e, const boost::array<uint8_t, N>& b) {
     e.encodeFixed(&b[0], N);
   }
@@ -191,6 +232,7 @@ struct codec_traits<boost::array<uint8_t, N> > {
   /**
    * Decodes into a given value.
    */
+  template <class Decoder>
   static void decode(Decoder& d, boost::array<uint8_t, N>& s) {
     std::vector<uint8_t> v(N);
     d.decodeFixed(N, v);
@@ -206,6 +248,7 @@ struct codec_traits<std::vector<T> > {
   /**
    * Encodes a given value.
    */
+  template <class Encoder>
   static void encode(Encoder& e, const std::vector<T>& b) {
     e.arrayStart();
     if (!b.empty()) {
@@ -222,6 +265,7 @@ struct codec_traits<std::vector<T> > {
   /**
    * Decodes into a given value.
    */
+  template <class Decoder>
   static void decode(Decoder& d, std::vector<T>& s) {
     s.clear();
     for (size_t n = d.arrayStart(); n != 0; n = d.arrayNext()) {
@@ -242,6 +286,7 @@ struct codec_traits<std::map<std::string, T> > {
   /**
    * Encodes a given value.
    */
+  template <class Encoder>
   static void encode(Encoder& e, const std::map<std::string, T>& b) {
     e.mapStart();
     if (!b.empty()) {
@@ -259,6 +304,7 @@ struct codec_traits<std::map<std::string, T> > {
   /**
    * Decodes into a given value.
    */
+  template <class Decoder>
   static void decode(Decoder& d, std::map<std::string, T>& s) {
     s.clear();
     for (size_t n = d.mapStart(); n != 0; n = d.mapNext()) {
@@ -276,16 +322,16 @@ struct codec_traits<std::map<std::string, T> > {
 /**
  * Generic encoder function that makes use of the codec_traits.
  */
-template <typename T>
-void encode(Encoder& e, const T& t) {
+template <class E, typename T>
+inline void encode(E& e, const T& t) {
   codec_traits<T>::encode(e, t);
 }
 
 /**
  * Generic decoder function that makes use of the codec_traits.
  */
-template <typename T>
-void decode(Decoder& d, T& t) {
+template <class D, typename T>
+inline void decode(D& d, T& t) {
   codec_traits<T>::decode(d, t);
 }
 

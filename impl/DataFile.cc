@@ -27,6 +27,8 @@
 #include <boost/iostreams/filter/gzip.hpp>
 #include <boost/iostreams/filter/zlib.hpp>
 
+#include <boost/make_shared.hpp>
+
 namespace internal_avro {
 using boost::shared_ptr;
 using std::ostringstream;
@@ -59,7 +61,7 @@ DataFileWriterBase::DataFileWriterBase(const char* filename,
                                        Compression compression)
     : filename_(filename),
       schema_(schema),
-      encoderPtr_(binaryEncoder()),
+      encoderPtr_(boost::make_shared<BinaryEncoder>()),
       syncInterval_(syncInterval),
       compression_(compression),
       stream_(fileOutputStream(filename)),
@@ -75,7 +77,7 @@ DataFileWriterBase::DataFileWriterBase(boost::shared_ptr<OutputStream> stream,
                                        Compression compression)
     : filename_("stream"),
       schema_(schema),
-      encoderPtr_(binaryEncoder()),
+      encoderPtr_(boost::make_shared<BinaryEncoder>()),
       syncInterval_(syncInterval),
       compression_(compression),
       stream_(stream),
@@ -202,7 +204,7 @@ void DataFileWriterBase::setMetadata(const string& key, const string& value) {
 DataFileReaderBase::DataFileReaderBase(const char* filename)
     : filename_(filename),
       stream_(fileInputStream(filename)),
-      decoder_(binaryDecoder()),
+      decoder_(boost::make_shared<BinaryDecoder>()),
       objectCount_(0),
       eof_(false),
       blockOffset_(0) {
@@ -212,7 +214,7 @@ DataFileReaderBase::DataFileReaderBase(const char* filename)
 DataFileReaderBase::DataFileReaderBase(boost::shared_ptr<InputStream> stream)
     : filename_("stream"),
       stream_(stream),
-      decoder_(binaryDecoder()),
+      decoder_(boost::make_shared<BinaryDecoder>()),
       objectCount_(0),
       eof_(false),
       blockOffset_(0) {
@@ -221,16 +223,20 @@ DataFileReaderBase::DataFileReaderBase(boost::shared_ptr<InputStream> stream)
 
 void DataFileReaderBase::init() {
   readerSchema_ = dataSchema_;
-  dataDecoder_ = binaryDecoder();
+  dataDecoder_ = boost::make_shared<BinaryDecoder>();
   readDataBlock();
 }
 
 void DataFileReaderBase::init(const ValidSchema& readerSchema) {
   readerSchema_ = readerSchema;
-  dataDecoder_ =
+  /*dataDecoder_ =
       (toString(readerSchema_) != toString(dataSchema_))
           ? resolvingDecoder(dataSchema_, readerSchema_, binaryDecoder())
-          : binaryDecoder();
+          : binaryDecoder();*/
+  if (toString(readerSchema_) != toString(dataSchema_)) {
+    throw Exception("resolving decoder not supported");
+  }
+  dataDecoder_ = boost::make_shared<BinaryDecoder>();
   readDataBlock();
 }
 

@@ -29,43 +29,9 @@ namespace internal_avro {
 
 using boost::make_shared;
 
-class BinaryDecoder : public Decoder {
-  StreamReader in_;
-  const uint8_t* next_;
-  const uint8_t* end_;
-
-  void init(InputStream& ib);
-  void decodeNull();
-  bool decodeBool();
-  int32_t decodeInt();
-  int64_t decodeLong();
-  float decodeFloat();
-  double decodeDouble();
-  void decodeString(std::string& value);
-  void skipString();
-  void decodeBytes(std::vector<uint8_t>& value);
-  void skipBytes();
-  void decodeFixed(size_t n, std::vector<uint8_t>& value);
-  void skipFixed(size_t n);
-  size_t decodeEnum();
-  size_t arrayStart();
-  size_t arrayNext();
-  size_t skipArray();
-  size_t mapStart();
-  size_t mapNext();
-  size_t skipMap();
-  size_t decodeUnionIndex();
-
-  int64_t doDecodeLong();
-  size_t doDecodeItemCount();
-  void more();
-};
-
-DecoderPtr binaryDecoder() { return make_shared<BinaryDecoder>(); }
-
-void BinaryDecoder::init(InputStream& is) { in_.reset(is); }
-
-void BinaryDecoder::decodeNull() {}
+DecoderPtr binaryDecoder() {
+  return make_shared<GenericDecoder<BinaryDecoder> >();
+}
 
 bool BinaryDecoder::decodeBool() {
   uint8_t v = in_.read();
@@ -86,44 +52,12 @@ int32_t BinaryDecoder::decodeInt() {
   return static_cast<int32_t>(val);
 }
 
-int64_t BinaryDecoder::decodeLong() { return doDecodeLong(); }
-
-float BinaryDecoder::decodeFloat() {
-  float result;
-  in_.readBytes(reinterpret_cast<uint8_t*>(&result), sizeof(float));
-  return result;
-}
-
-double BinaryDecoder::decodeDouble() {
-  double result;
-  in_.readBytes(reinterpret_cast<uint8_t*>(&result), sizeof(double));
-  return result;
-}
-
-void BinaryDecoder::decodeString(std::string& value) {
-  size_t len = decodeInt();
-  value.resize(len);
-  if (len > 0) {
-    in_.readBytes(reinterpret_cast<uint8_t*>(&value[0]), len);
-  }
-}
-
-void BinaryDecoder::skipString() {
-  size_t len = decodeInt();
-  in_.skipBytes(len);
-}
-
 void BinaryDecoder::decodeBytes(std::vector<uint8_t>& value) {
   size_t len = decodeInt();
   value.resize(len);
   if (len > 0) {
     in_.readBytes(&value[0], len);
   }
-}
-
-void BinaryDecoder::skipBytes() {
-  size_t len = decodeInt();
-  in_.skipBytes(len);
 }
 
 void BinaryDecoder::decodeFixed(size_t n, std::vector<uint8_t>& value) {
@@ -133,14 +67,6 @@ void BinaryDecoder::decodeFixed(size_t n, std::vector<uint8_t>& value) {
   }
 }
 
-void BinaryDecoder::skipFixed(size_t n) { in_.skipBytes(n); }
-
-size_t BinaryDecoder::decodeEnum() {
-  return static_cast<size_t>(doDecodeLong());
-}
-
-size_t BinaryDecoder::arrayStart() { return doDecodeItemCount(); }
-
 size_t BinaryDecoder::doDecodeItemCount() {
   int64_t result = doDecodeLong();
   if (result < 0) {
@@ -148,10 +74,6 @@ size_t BinaryDecoder::doDecodeItemCount() {
     return static_cast<size_t>(-result);
   }
   return static_cast<size_t>(result);
-}
-
-size_t BinaryDecoder::arrayNext() {
-  return static_cast<size_t>(doDecodeLong());
 }
 
 size_t BinaryDecoder::skipArray() {
@@ -164,16 +86,6 @@ size_t BinaryDecoder::skipArray() {
       return static_cast<size_t>(r);
     }
   }
-}
-
-size_t BinaryDecoder::mapStart() { return doDecodeItemCount(); }
-
-size_t BinaryDecoder::mapNext() { return doDecodeItemCount(); }
-
-size_t BinaryDecoder::skipMap() { return skipArray(); }
-
-size_t BinaryDecoder::decodeUnionIndex() {
-  return static_cast<size_t>(doDecodeLong());
 }
 
 int64_t BinaryDecoder::doDecodeLong() {

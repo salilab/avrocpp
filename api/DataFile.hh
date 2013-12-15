@@ -57,7 +57,7 @@ typedef boost::array<uint8_t, 16> DataFileSync;
 class AVRO_DECL DataFileWriterBase : boost::noncopyable {
   const std::string filename_;
   const ValidSchema schema_;
-  const EncoderPtr encoderPtr_;
+  const boost::shared_ptr<BinaryEncoder> encoderPtr_;
   const size_t syncInterval_;
   Compression compression_;
 
@@ -86,7 +86,7 @@ class AVRO_DECL DataFileWriterBase : boost::noncopyable {
   /**
    * Returns the current encoder for this writer.
    */
-  Encoder& encoder() const { return *encoderPtr_; }
+  BinaryEncoder& encoder() const { return *encoderPtr_; }
 
   /**
    * Returns true if the buffer has sufficient data for a sync to be
@@ -188,7 +188,7 @@ class DataFileWriter : boost::noncopyable {
 class AVRO_DECL DataFileReaderBase : boost::noncopyable {
   const std::string filename_;
   const boost::shared_ptr<InputStream> stream_;
-  const DecoderPtr decoder_;
+  const boost::shared_ptr<BinaryDecoder> decoder_;
   int64_t objectCount_;
   bool eof_;
   Compression compression_;
@@ -196,7 +196,7 @@ class AVRO_DECL DataFileReaderBase : boost::noncopyable {
 
   ValidSchema readerSchema_;
   ValidSchema dataSchema_;
-  DecoderPtr dataDecoder_;
+  boost::shared_ptr<BinaryDecoder> dataDecoder_;
   boost::shared_ptr<InputStream> dataStream_;
   typedef std::map<std::string, std::vector<uint8_t> > Metadata;
 
@@ -215,7 +215,7 @@ class AVRO_DECL DataFileReaderBase : boost::noncopyable {
   /**
    * Returns the current decoder for this reader.
    */
-  Decoder& decoder() { return *dataDecoder_; }
+  BinaryDecoder& decoder() { return *dataDecoder_; }
 
   /**
    * Returns true if and only if there is more to read.

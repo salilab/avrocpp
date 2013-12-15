@@ -20,6 +20,7 @@
 #define avro_Encoder_hh__
 
 #include "Config.hh"
+#include "Zigzag.hh"
 #include <stdint.h>
 #include <string>
 #include <vector>
@@ -142,6 +143,109 @@ class AVRO_DECL Encoder {
  * Shared pointer to Encoder.
  */
 typedef boost::shared_ptr<Encoder> EncoderPtr;
+
+template <class Impl>
+class GenericEncoder : public Encoder {
+  Impl impl_;
+
+ public:
+  GenericEncoder(Impl impl = Impl()) : impl_(impl) {}
+  virtual ~GenericEncoder() {};
+
+  virtual void init(OutputStream& os) { impl_.init(os); }
+
+  virtual void flush() { impl_.flush(); }
+
+  virtual void encodeNull() { impl_.encodeNull(); }
+
+  virtual void encodeBool(bool b) { impl_.encodeBool(b); }
+
+  virtual void encodeInt(int32_t i) { impl_.encodeInt(i); }
+
+  virtual void encodeLong(int64_t l) { impl_.encodeLong(l); }
+
+  virtual void encodeFloat(float f) { impl_.encodeFloat(f); }
+
+  virtual void encodeDouble(double d) { impl_.encodeDouble(d); }
+
+  virtual void encodeString(const std::string& s) { impl_.encodeString(s); }
+
+  virtual void encodeBytes(const uint8_t* bytes, size_t len) {
+    impl_.encodeBytes(bytes, len);
+  }
+
+  virtual void encodeFixed(const uint8_t* bytes, size_t len) {
+    impl_.encodeFixed(bytes, len);
+  }
+
+  virtual void encodeEnum(size_t e) { impl_.encodeEnum(e); }
+
+  virtual void arrayStart() { impl_.arrayStart(); }
+
+  virtual void arrayEnd() { impl_.arrayEnd(); }
+
+  virtual void mapStart() { impl_.mapStart(); }
+
+  virtual void mapEnd() { impl_.mapEnd(); }
+
+  virtual void setItemCount(size_t count) { impl_.setItemCount(count); }
+
+  virtual void startItem() { impl_.startItem(); }
+
+  virtual void encodeUnionIndex(size_t e) { impl_.encodeUnionIndex(e); }
+};
+
+class BinaryEncoder {
+  StreamWriter out_;
+  uint8_t* next_;
+  uint8_t* end_;
+
+ public:
+  void init(OutputStream& os) { out_.reset(os); }
+  void flush() { out_.flush(); }
+  void encodeNull() {}
+  void encodeBool(bool b) { out_.write(b ? 1 : 0); }
+  void encodeInt(int32_t i) { doEncodeLong(i); }
+  void encodeLong(int64_t l) { doEncodeLong(l); }
+  void encodeFloat(float f)  {
+    const uint8_t* p = reinterpret_cast<const uint8_t*>(&f);
+    out_.writeBytes(p, sizeof(float));
+  }
+  void encodeDouble(double d) {
+    const uint8_t* p = reinterpret_cast<const uint8_t*>(&d);
+    out_.writeBytes(p, sizeof(double));
+  }
+  void encodeString(const std::string& s) {
+    doEncodeLong(s.size());
+    out_.writeBytes(reinterpret_cast<const uint8_t*>(s.c_str()), s.size());
+  }
+  void encodeBytes(const uint8_t* bytes, size_t len) {
+    doEncodeLong(len);
+    out_.writeBytes(bytes, len);
+  }
+  void encodeFixed(const uint8_t* bytes, size_t len) {
+    out_.writeBytes(bytes, len);
+  }
+  void encodeEnum(size_t e) { doEncodeLong(e); }
+  void arrayStart() {}
+  void arrayEnd() { doEncodeLong(0); }
+  void mapStart() {}
+  void mapEnd() { doEncodeLong(0); }
+  void setItemCount(size_t count) {
+    if (count == 0) {
+      throw Exception("Count cannot be zero");
+    }
+    doEncodeLong(count);
+  }
+  void startItem() {}
+  void encodeUnionIndex(size_t e) { doEncodeLong(e); }
+
+  void doEncodeLong(int64_t l) {
+    boost::array<uint8_t, 10> bytes;
+    size_t size = encodeInt64(l, bytes);
+    out_.writeBytes(bytes.data(), size);
+  }
+};
 
 /**
  *  Returns an encoder that can encode binary Avro standard.
