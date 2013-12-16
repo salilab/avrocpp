@@ -234,6 +234,8 @@ void DataFileReaderBase::init(const ValidSchema& readerSchema) {
           ? resolvingDecoder(dataSchema_, readerSchema_, binaryDecoder())
           : binaryDecoder();*/
   if (toString(readerSchema_) != toString(dataSchema_)) {
+    std::cerr << "File schema: " << toString(dataSchema_) << std::endl;
+    std::cerr << "Reader schema: " << toString(readerSchema_) << std::endl;
     throw Exception("resolving decoder not supported");
   }
   dataDecoder_ = boost::make_shared<BinaryDecoder>();
