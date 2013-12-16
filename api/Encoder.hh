@@ -21,7 +21,6 @@
 
 #include "Config.hh"
 #include "Zigzag.hh"
-#define __STDC_LIMIT_MACROS
 #include <stdint.h>
 #include <string>
 #include <vector>

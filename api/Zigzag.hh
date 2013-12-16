@@ -19,7 +19,6 @@
 #ifndef avro_Encoding_hh__
 #define avro_Encoding_hh__
 
-#define __STDC_LIMIT_MACROS
 #include <stdint.h>
 #include <boost/array.hpp>
 

@@ -21,7 +21,6 @@
 
 #include "Config.hh"
 
-#define __STDC_LIMIT_MACROS
 #include <stdint.h>
 #include <string>
 #include <vector>
@@ -236,7 +235,7 @@ class AVRO_DECL ResolvingDecoder : public Decoder {
  */
 typedef boost::shared_ptr<ResolvingDecoder> ResolvingDecoderPtr;
 
-class BinaryDecoder {
+class AVRO_DECL BinaryDecoder {
   StreamReader in_;
   const uint8_t* next_;
   const uint8_t* end_;
@@ -245,14 +244,7 @@ class BinaryDecoder {
   void init(InputStream& is) { in_.reset(is); }
   void decodeNull() {}
   bool decodeBool();
-  int32_t decodeInt() {
-    int64_t val = doDecodeLong();
-    if (val < INT32_MIN || val > INT32_MAX) {
-      throw Exception(boost::format("Value out of range for Avro int: %1%") %
-                      val);
-    }
-    return static_cast<int32_t>(val);
-  }
+  int32_t decodeInt();
   int64_t decodeLong() { return doDecodeLong(); }
   float decodeFloat() {
     float result;

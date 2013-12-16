@@ -20,7 +20,6 @@
 #define avro_Resolver_hh__
 
 #include <boost/noncopyable.hpp>
-#define __STDC_LIMIT_MACROS
 #include <stdint.h>
 
 #include "Config.hh"

@@ -18,7 +18,7 @@
 
 #ifndef avro_Reader_hh__
 #define avro_Reader_hh__
-#define __STDC_LIMIT_MACROS
+
 #include <stdint.h>
 #include <vector>
 #include <boost/noncopyable.hpp>

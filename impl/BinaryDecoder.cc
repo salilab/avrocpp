@@ -43,6 +43,15 @@ bool BinaryDecoder::decodeBool() {
   throw Exception("Invalid value for bool");
 }
 
+int32_t BinaryDecoder::decodeInt() {
+  int64_t val = doDecodeLong();
+  if (val < INT32_MIN || val > INT32_MAX) {
+    throw Exception(boost::format("Value out of range for Avro int: %1%") %
+                    val);
+  }
+  return static_cast<int32_t>(val);
+}
+
 void BinaryDecoder::decodeBytes(std::vector<uint8_t>& value) {
   size_t len = decodeInt();
   value.resize(len);

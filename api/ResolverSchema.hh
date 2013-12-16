@@ -21,7 +21,7 @@
 
 #include <boost/noncopyable.hpp>
 #include <boost/shared_ptr.hpp>
-#define __STDC_LIMIT_MACROS
+
 #include <stdint.h>
 
 #include "Config.hh"
