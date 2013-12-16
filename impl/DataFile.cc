@@ -94,7 +94,7 @@ void DataFileWriterBase::setup() {
                         "Should be between %2% and %3%") %
                     syncInterval_ % minSyncInterval % maxSyncInterval);
   }
-  if (compression_ == NULL) {
+  if (compression_ == NONE) {
     setMetadata(AVRO_CODEC_KEY, AVRO_NULL_CODEC);
   } else if (compression_ == GZIP) {
     setMetadata(AVRO_CODEC_KEY, AVRO_GZIP_CODEC);
