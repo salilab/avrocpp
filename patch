@@ -1,0 +1,328 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 922cc07..0af8a4d 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -52,7 +52,7 @@ endif ()
+ 
+ 
+ find_package (Boost 1.38 REQUIRED
+-    COMPONENTS filesystem system program_options)
++    COMPONENTS filesystem system program_options iostreams)
+ 
+ add_definitions (${Boost_LIB_DIAGNOSTIC_DEFINITIONS})
+ 
+diff --git a/api/DataFile.hh b/api/DataFile.hh
+index 06bb593..aba663b 100644
+--- a/api/DataFile.hh
++++ b/api/DataFile.hh
+@@ -32,9 +32,18 @@
+ 
+ #include "boost/array.hpp"
+ #include "boost/utility.hpp"
++#include <boost/iostreams/filtering_stream.hpp>
++#include <boost/scoped_ptr.hpp>
+ 
+ namespace avro {
+ 
++/** Specify type of compression to use when writing data files. */
++enum Codec {
++  NULL_CODEC,
++  GZIP_CODEC,
++  ZIP_CODEC
++};
++
+ /**
+  * The sync value.
+  */
+@@ -50,6 +59,7 @@ class AVRO_DECL DataFileWriterBase : boost::noncopyable {
+     const ValidSchema schema_;
+     const EncoderPtr encoderPtr_;
+     const size_t syncInterval_;
++    Codec codec_;
+ 
+     std::auto_ptr<OutputStream> stream_;
+     std::auto_ptr<OutputStream> buffer_;
+@@ -76,7 +86,7 @@ public:
+      * Returns the current encoder for this writer.
+      */
+     Encoder& encoder() const { return *encoderPtr_; }
+-    
++
+     /**
+      * Returns true if the buffer has sufficient data for a sync to be
+      * inserted.
+@@ -93,7 +103,7 @@ public:
+      * Constructs a data file writer with the given sync interval and name.
+      */
+     DataFileWriterBase(const char* filename, const ValidSchema& schema,
+-        size_t syncInterval);
++        size_t syncInterval, Codec codec = NULL_CODEC);
+ 
+     ~DataFileWriterBase();
+     /**
+@@ -124,8 +134,8 @@ public:
+      * Constructs a new data file.
+      */
+     DataFileWriter(const char* filename, const ValidSchema& schema,
+-        size_t syncInterval = 16 * 1024) :
+-        base_(new DataFileWriterBase(filename, schema, syncInterval)) { }
++        size_t syncInterval = 16 * 1024, Codec codec = NULL_CODEC) :
++        base_(new DataFileWriterBase(filename, schema, syncInterval, codec)) { }
+ 
+     /**
+      * Writes the given piece of data into the file.
+@@ -162,6 +172,7 @@ class AVRO_DECL DataFileReaderBase : boost::noncopyable {
+     const DecoderPtr decoder_;
+     int64_t objectCount_;
+     bool eof_;
++    Codec codec_;
+ 
+     ValidSchema readerSchema_;
+     ValidSchema dataSchema_;
+@@ -172,6 +183,10 @@ class AVRO_DECL DataFileReaderBase : boost::noncopyable {
+     Metadata metadata_;
+     DataFileSync sync_;
+ 
++    // for compressed buffer
++    boost::scoped_ptr<boost::iostreams::filtering_istream> os_;
++    std::vector<char> compressed_;
++
+     void readHeader();
+ 
+     bool readDataBlock();
+@@ -315,5 +330,3 @@ public:
+ 
+ }   // namespace avro
+ #endif
+-
+-
+diff --git a/impl/DataFile.cc b/impl/DataFile.cc
+index 977f0a9..9b1b94d 100644
+--- a/impl/DataFile.cc
++++ b/impl/DataFile.cc
+@@ -23,6 +23,9 @@
+ #include <sstream>
+ 
+ #include <boost/random/mersenne_twister.hpp>
++#include <boost/iostreams/device/file.hpp>
++#include <boost/iostreams/filter/gzip.hpp>
++#include <boost/iostreams/filter/zlib.hpp>
+ 
+ namespace avro {
+ using std::auto_ptr;
+@@ -37,6 +40,8 @@ using boost::array;
+ const string AVRO_SCHEMA_KEY("avro.schema");
+ const string AVRO_CODEC_KEY("avro.codec");
+ const string AVRO_NULL_CODEC("null");
++const string AVRO_GZIP_CODEC("gzip");
++const string AVRO_ZIP_CODEC("zip");
+ 
+ const size_t minSyncInterval = 32;
+ const size_t maxSyncInterval = 1u << 30;
+@@ -50,9 +55,10 @@ static string toString(const ValidSchema& schema)
+ }
+ 
+ DataFileWriterBase::DataFileWriterBase(const char* filename,
+-    const ValidSchema& schema, size_t syncInterval) :
++    const ValidSchema& schema, size_t syncInterval, Codec codec) :
+     filename_(filename), schema_(schema), encoderPtr_(binaryEncoder()),
+     syncInterval_(syncInterval),
++    codec_(codec),
+     stream_(fileOutputStream(filename)),
+     buffer_(memoryOutputStream()),
+     sync_(makeSync()), objectCount_(0)
+@@ -64,6 +70,15 @@ DataFileWriterBase::DataFileWriterBase(const char* filename,
+     }
+     setMetadata(AVRO_CODEC_KEY, AVRO_NULL_CODEC);
+ 
++    if (codec_ == NULL_CODEC) {
++      setMetadata(AVRO_CODEC_KEY, AVRO_NULL_CODEC);
++    } else if (codec_ == GZIP_CODEC) {
++      setMetadata(AVRO_CODEC_KEY, AVRO_GZIP_CODEC);
++    } else if (codec_ == ZIP_CODEC) {
++      setMetadata(AVRO_CODEC_KEY, AVRO_GZIP_CODEC);
++    } else {
++      throw Exception("Unknown codec codec");
++    }
+     setMetadata(AVRO_SCHEMA_KEY, toString(schema));
+ 
+     writeHeader();
+@@ -87,18 +102,42 @@ void DataFileWriterBase::sync()
+ {
+     encoderPtr_->flush();
+ 
+-    encoderPtr_->init(*stream_);
+-    avro::encode(*encoderPtr_, objectCount_);
++  encoderPtr_->init(*stream_);
++  avro::encode(*encoderPtr_, objectCount_);
++  if (codec_ == NULL_CODEC) {
+     int64_t byteCount = buffer_->byteCount();
+     avro::encode(*encoderPtr_, byteCount);
+     encoderPtr_->flush();
+-
+-    auto_ptr<InputStream> in = memoryInputStream(*buffer_);
++    std::auto_ptr<InputStream> in = memoryInputStream(*buffer_);
+     copy(*in, *stream_);
+-
+-    encoderPtr_->init(*stream_);
+-    avro::encode(*encoderPtr_, sync_);
++  } else {
++    std::vector<char> buf;
++    {
++      boost::iostreams::filtering_ostream os;
++      if (codec_ == GZIP_CODEC) {
++        os.push(boost::iostreams::gzip_compressor());
++      } else if (codec_ == ZIP_CODEC) {
++        os.push(boost::iostreams::zlib_compressor());
++      }
++      os.push(boost::iostreams::back_inserter(buf));
++      const uint8_t* data;
++      size_t len;
++
++      std::auto_ptr<InputStream> input = memoryInputStream(*buffer_);
++      while (input->next(&data, &len)) {
++        boost::iostreams::write(os, reinterpret_cast<const char*>(data), len);
++      }
++    }
++    std::auto_ptr<InputStream> in = memoryInputStream(
++        reinterpret_cast<const uint8_t*>(&buf[0]), buf.size());
++    int64_t byteCount = buf.size();
++    avro::encode(*encoderPtr_, byteCount);
+     encoderPtr_->flush();
++    copy(*in, *stream_);
++  }
++  encoderPtr_->init(*stream_);
++  avro::encode(*encoderPtr_, sync_);
++  encoderPtr_->flush();
+ 
+ 
+     buffer_ = memoryOutputStream();
+@@ -272,8 +311,32 @@ bool DataFileReaderBase::readDataBlock()
+     decoder_->init(*stream_);
+ 
+     auto_ptr<InputStream> st = boundedInputStream(*stream_, static_cast<size_t>(byteCount));
++  if (codec_ == NULL_CODEC) {
+     dataDecoder_->init(*st);
+     dataStream_ = st;
++  } else {
++    compressed_.clear();
++    const uint8_t* data;
++    size_t len;
++    while (st->next(&data, &len)) {
++      compressed_.insert(compressed_.end(), data, data + len);
++    }
++    // boost::iostreams::write(os, reinterpret_cast<const char*>(data), len);
++    os_.reset(new boost::iostreams::filtering_istream());
++    if (codec_ == GZIP_CODEC) {
++      os_->push(boost::iostreams::gzip_decompressor());
++    } else if (codec_ == ZIP_CODEC) {
++      os_->push(boost::iostreams::zlib_decompressor());
++    } else {
++      throw Exception("Bad codec");
++    }
++    os_->push(boost::iostreams::basic_array_source<char>(&compressed_[0],
++                                                         compressed_.size()));
++
++    std::auto_ptr<InputStream> in = istreamInputStream(*os_);
++    dataDecoder_->init(*in);
++    dataStream_ = in;
++  }
+     return true;
+ }
+ 
+@@ -318,8 +381,16 @@ void DataFileReaderBase::readHeader()
+     }
+ 
+     it = metadata_.find(AVRO_CODEC_KEY);
+-    if (it != metadata_.end() && toString(it->second) != AVRO_NULL_CODEC) {
++    if (it != metadata_.end() && toString(it->second) == AVRO_GZIP_CODEC) {
++      codec_ = GZIP_CODEC;
++    } else if (it != metadata_.end() &&
++               toString(it->second) == AVRO_GZIP_CODEC) {
++      codec_ = ZIP_CODEC;
++    } else {
++      codec_ = NULL_CODEC;
++      if (it != metadata_.end() && toString(it->second) != AVRO_NULL_CODEC) {
+         throw Exception("Unknown codec in data file: " + toString(it->second));
++      }
+     }
+ 
+     avro::decode(*decoder_, sync_);
+diff --git a/test/DataFileTests.cc b/test/DataFileTests.cc
+index 6050cdc..6dfb585 100644
+--- a/test/DataFileTests.cc
++++ b/test/DataFileTests.cc
+@@ -76,7 +76,7 @@ template <typename T> struct codec_traits<Complex<T> > {
+         avro::encode(e, c.re);
+         avro::encode(e, c.im);
+     }
+-    
++
+     static void decode(Decoder& d, Complex<T>& c) {
+         avro::decode(d, c.re);
+         avro::decode(d, c.im);
+@@ -147,7 +147,7 @@ public:
+     void testCleanup() {
+         BOOST_CHECK(boost::filesystem::remove(filename));
+     }
+-    
++
+     void testWrite() {
+         avro::DataFileWriter<ComplexInteger> df(filename, writerSchema, 100);
+         int64_t re = 3;
+@@ -343,6 +343,37 @@ public:
+         }
+         BOOST_CHECK_EQUAL(i, count);
+     }
++    /**
++     * Test writing DataFiles into other streams operations.
++     */
++    void testGZip() {
++        const size_t number_of_objects = 100;
++        // first create a large file
++        ValidSchema dschema = avro::compileJsonSchemaFromString(sch);
++        {
++            avro::DataFileWriter<ComplexInteger> writer(
++              filename, dschema, 16 * 1024, avro::GZIP_CODEC);
++
++            for (size_t i = 0; i < number_of_objects; ++i) {
++                ComplexInteger d;
++                d.re = i;
++                d.im = 2 * i;
++                writer.write(d);
++            }
++        }
++        {
++            avro::DataFileReader<ComplexInteger> reader(filename, dschema);
++            std::vector<int> found;
++            ComplexInteger record;
++            while (reader.read(record)) {
++                found.push_back(record.re);
++            }
++            BOOST_CHECK_EQUAL(found.size(), number_of_objects);
++            for (unsigned int i = 0; i < found.size(); ++i) {
++                BOOST_CHECK_EQUAL(found[i], i);
++            }
++        }
++    }
+ };
+ 
+ void addReaderTests(test_suite* ts, const shared_ptr<DataFileTest>& t)
+@@ -357,7 +388,7 @@ void addReaderTests(test_suite* ts, const shared_ptr<DataFileTest>& t)
+ }
+ 
+ test_suite*
+-init_unit_test_suite( int argc, char* argv[] ) 
++init_unit_test_suite( int argc, char* argv[] )
+ {
+     test_suite* ts= BOOST_TEST_SUITE("DataFile tests");
+     shared_ptr<DataFileTest> t1(new DataFileTest("test1.df", sch, isch));
+@@ -380,5 +411,8 @@ init_unit_test_suite( int argc, char* argv[] )
+     ts->add(BOOST_CLASS_TEST_CASE(&DataFileTest::testTruncate, t4));
+     ts->add(BOOST_CLASS_TEST_CASE(&DataFileTest::testCleanup, t4));
+ 
++    shared_ptr<DataFileTest> t5(new DataFileTest("test5.df", dsch, dblsch));
++    ts->add(BOOST_CLASS_TEST_CASE(&DataFileTest::testGZip, t5));
++
+     return ts;
+ }
