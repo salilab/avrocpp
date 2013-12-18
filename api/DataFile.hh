@@ -40,7 +40,6 @@ namespace internal_avro {
 /** Specify type of compression to use when writing data files. */
 enum Compression {
   NONE,
-  GZIP,
   ZIP
 };
 

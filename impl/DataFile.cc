@@ -42,12 +42,20 @@ using boost::array;
 const string AVRO_SCHEMA_KEY("avro.schema");
 const string AVRO_CODEC_KEY("avro.codec");
 const string AVRO_NULL_CODEC("null");
-const string AVRO_GZIP_CODEC("gzip");
-const string AVRO_ZIP_CODEC("zip");
+const string AVRO_ZIP_CODEC("deflate");
 
 const size_t minSyncInterval = 32;
 const size_t maxSyncInterval = 1u << 30;
 const size_t defaultSyncInterval = 16 * 1024;
+
+namespace {
+boost::iostreams::zlib_params get_zlib_params() {
+  boost::iostreams::zlib_params ret;
+  ret.method = boost::iostreams::zlib::deflated;
+  ret.noheader = true;
+  return ret;
+}
+}
 
 static string toString(const ValidSchema& schema) {
   ostringstream oss;
@@ -96,10 +104,8 @@ void DataFileWriterBase::setup() {
   }
   if (compression_ == NONE) {
     setMetadata(AVRO_CODEC_KEY, AVRO_NULL_CODEC);
-  } else if (compression_ == GZIP) {
-    setMetadata(AVRO_CODEC_KEY, AVRO_GZIP_CODEC);
   } else if (compression_ == ZIP) {
-    setMetadata(AVRO_CODEC_KEY, AVRO_GZIP_CODEC);
+    setMetadata(AVRO_CODEC_KEY, AVRO_ZIP_CODEC);
   } else {
     throw Exception("Unknown compression codec");
   }
@@ -135,10 +141,8 @@ void DataFileWriterBase::sync() {
     std::vector<char> buf;
     {
       boost::iostreams::filtering_ostream os;
-      if (compression_ == GZIP) {
-        os.push(boost::iostreams::gzip_compressor());
-      } else if (compression_ == ZIP) {
-        os.push(boost::iostreams::zlib_compressor());
+      if (compression_ == ZIP) {
+        os.push(boost::iostreams::zlib_compressor(get_zlib_params()));
       }
       os.push(boost::iostreams::back_inserter(buf));
       const uint8_t* data;
@@ -348,10 +352,8 @@ bool DataFileReaderBase::readDataBlock() {
     }
     // boost::iostreams::write(os, reinterpret_cast<const char*>(data), len);
     os_.reset(new boost::iostreams::filtering_istream());
-    if (compression_ == GZIP) {
-      os_->push(boost::iostreams::gzip_decompressor());
-    } else if (compression_ == ZIP) {
-      os_->push(boost::iostreams::zlib_decompressor());
+    if (compression_ == ZIP) {
+      os_->push(boost::iostreams::zlib_decompressor(get_zlib_params()));
     }
     os_->push(boost::iostreams::basic_array_source<char>(&compressed_[0],
                                                          compressed_.size()));
@@ -511,9 +513,7 @@ void DataFileReaderBase::readHeader() {
   }
 
   it = metadata_.find(AVRO_CODEC_KEY);
-  if (it != metadata_.end() && toString(it->second) == AVRO_GZIP_CODEC) {
-    compression_ = GZIP;
-  } else if (it != metadata_.end() && toString(it->second) == AVRO_GZIP_CODEC) {
+  if (it != metadata_.end() && toString(it->second) == AVRO_ZIP_CODEC) {
     compression_ = ZIP;
   } else {
     compression_ = NONE;

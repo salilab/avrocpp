@@ -503,7 +503,7 @@ class DataFileTest {
   /**
    * Test writing DataFiles into other streams operations.
    */
-  void testGZip() {
+  void testZip() {
     const size_t padding_size = 1000;
     const size_t number_of_objects = 100;
     // first create a large file
@@ -511,7 +511,7 @@ class DataFileTest {
     {
       boost::shared_ptr<internal_avro::DataFileWriter<PaddedRecord> > writer =
           boost::make_shared<internal_avro::DataFileWriter<PaddedRecord> >(
-              filename, dschema, 16 * 1024, true);
+              filename, dschema, 16 * 1024, ZIP);
 
       for (size_t i = 0; i < number_of_objects; ++i) {
         PaddedRecord d;
@@ -580,7 +580,7 @@ test_suite* init_unit_test_suite(int argc, char* argv[]) {
   ts->add(BOOST_CLASS_TEST_CASE(&DataFileTest::testBuffer, t6));
 
   shared_ptr<DataFileTest> t7(new DataFileTest("test7.df", dsch, dblsch));
-  ts->add(BOOST_CLASS_TEST_CASE(&DataFileTest::testGZip, t7));
+  ts->add(BOOST_CLASS_TEST_CASE(&DataFileTest::testZip, t7));
 
   return ts;
 }
