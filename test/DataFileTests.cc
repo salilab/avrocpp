@@ -281,7 +281,7 @@ public:
         Pair p(writerSchema, GenericDatum());
         int64_t re = 3;
         int64_t im = 5;
-        
+
         const GenericDatum& ci = p.second;
         while (df.read(p)) {
             BOOST_REQUIRE_EQUAL(ci.type(), avro::AVRO_RECORD);
@@ -397,7 +397,7 @@ public:
         ValidSchema dschema = avro::compileJsonSchemaFromString(sch);
         {
             avro::DataFileWriter<ComplexInteger> writer(
-              filename, dschema, 16 * 1024, avro::ZIP_CODEC);
+              filename, dschema, 16 * 1024, avro::DEFLATE_CODEC);
 
             for (size_t i = 0; i < number_of_objects; ++i) {
                 ComplexInteger d;
