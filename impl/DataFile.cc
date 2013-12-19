@@ -42,7 +42,7 @@ using boost::array;
 const string AVRO_SCHEMA_KEY("avro.schema");
 const string AVRO_CODEC_KEY("avro.codec");
 const string AVRO_NULL_CODEC("null");
-const string AVRO_ZIP_CODEC("deflate");
+const string AVRO_DEFLATE_CODEC("deflate");
 
 const size_t minSyncInterval = 32;
 const size_t maxSyncInterval = 1u << 30;
@@ -66,12 +66,12 @@ static string toString(const ValidSchema& schema) {
 DataFileWriterBase::DataFileWriterBase(const char* filename,
                                        const ValidSchema& schema,
                                        size_t syncInterval,
-                                       Compression compression)
+                                       Codec codec)
     : filename_(filename),
       schema_(schema),
       encoderPtr_(boost::make_shared<BinaryEncoder>()),
       syncInterval_(syncInterval),
-      compression_(compression),
+      codec_(codec),
       stream_(fileOutputStream(filename)),
       buffer_(memoryOutputStream()),
       sync_(makeSync()),
@@ -82,12 +82,12 @@ DataFileWriterBase::DataFileWriterBase(const char* filename,
 DataFileWriterBase::DataFileWriterBase(boost::shared_ptr<OutputStream> stream,
                                        const ValidSchema& schema,
                                        size_t syncInterval,
-                                       Compression compression)
+                                       Codec codec)
     : filename_("stream"),
       schema_(schema),
       encoderPtr_(boost::make_shared<BinaryEncoder>()),
       syncInterval_(syncInterval),
-      compression_(compression),
+      codec_(codec),
       stream_(stream),
       buffer_(memoryOutputStream()),
       sync_(makeSync()),
@@ -102,12 +102,12 @@ void DataFileWriterBase::setup() {
                         "Should be between %2% and %3%") %
                     syncInterval_ % minSyncInterval % maxSyncInterval);
   }
-  if (compression_ == NONE) {
+  if (codec_ == NULL_CODEC) {
     setMetadata(AVRO_CODEC_KEY, AVRO_NULL_CODEC);
-  } else if (compression_ == ZIP) {
-    setMetadata(AVRO_CODEC_KEY, AVRO_ZIP_CODEC);
+  } else if (codec_ == DEFLATE_CODEC) {
+    setMetadata(AVRO_CODEC_KEY, AVRO_DEFLATE_CODEC);
   } else {
-    throw Exception("Unknown compression codec");
+    throw Exception("Unknown codec codec");
   }
   setMetadata(AVRO_SCHEMA_KEY, toString(schema_));
 
@@ -131,7 +131,7 @@ void DataFileWriterBase::sync() {
 
   encoderPtr_->init(*stream_);
   internal_avro::encode(*encoderPtr_, objectCount_);
-  if (compression_ == NONE) {
+  if (codec_ == NULL_CODEC) {
     int64_t byteCount = buffer_->byteCount();
     internal_avro::encode(*encoderPtr_, byteCount);
     encoderPtr_->flush();
@@ -141,7 +141,7 @@ void DataFileWriterBase::sync() {
     std::vector<char> buf;
     {
       boost::iostreams::filtering_ostream os;
-      if (compression_ == ZIP) {
+      if (codec_ == DEFLATE_CODEC) {
         os.push(boost::iostreams::zlib_compressor(get_zlib_params()));
       }
       os.push(boost::iostreams::back_inserter(buf));
@@ -340,7 +340,7 @@ bool DataFileReaderBase::readDataBlock() {
 
   boost::shared_ptr<InputStream> st =
       boundedInputStream(*stream_, static_cast<size_t>(byteCount));
-  if (compression_ == NONE) {
+  if (codec_ == NULL_CODEC) {
     dataDecoder_->init(*st);
     dataStream_ = st;
   } else {
@@ -352,7 +352,7 @@ bool DataFileReaderBase::readDataBlock() {
     }
     // boost::iostreams::write(os, reinterpret_cast<const char*>(data), len);
     os_.reset(new boost::iostreams::filtering_istream());
-    if (compression_ == ZIP) {
+    if (codec_ == DEFLATE_CODEC) {
       os_->push(boost::iostreams::zlib_decompressor(get_zlib_params()));
     }
     os_->push(boost::iostreams::basic_array_source<char>(&compressed_[0],
@@ -513,10 +513,10 @@ void DataFileReaderBase::readHeader() {
   }
 
   it = metadata_.find(AVRO_CODEC_KEY);
-  if (it != metadata_.end() && toString(it->second) == AVRO_ZIP_CODEC) {
-    compression_ = ZIP;
+  if (it != metadata_.end() && toString(it->second) == AVRO_DEFLATE_CODEC) {
+    codec_ = DEFLATE_CODEC;
   } else {
-    compression_ = NONE;
+    codec_ = NULL_CODEC;
     if (it != metadata_.end() && toString(it->second) != AVRO_NULL_CODEC) {
       throw Exception("Unknown codec in data file: " + toString(it->second));
     }
